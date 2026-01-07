@@ -1,6 +1,6 @@
 .resources-container {
   min-height: calc(100vh - 200px);
-  background-color: var(--grey);
+  background-color: var(--white);
   padding: 2rem;
   font-family: var(--secfont);
 }
@@ -31,4 +31,3 @@
   color: var(--light-grey);
   font-size: 1.2rem;
 }
-

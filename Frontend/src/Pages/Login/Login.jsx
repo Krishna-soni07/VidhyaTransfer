@@ -28,14 +28,14 @@ const Login = () => {
       if (activeTab === "login") {
         // Login logic
         const { data } = await axios.post("/auth/login", { email, password });
-        
+
         if (data.success) {
           toast.success(data.message || "Login successful");
-          
+
           const userInfo = data.data.user;
           localStorage.setItem("userInfo", JSON.stringify(userInfo));
           setUser(userInfo);
-          
+
           // Check onboarding status and redirect accordingly
           try {
             let onboardingStatus;
@@ -55,7 +55,7 @@ const Login = () => {
                 return;
               }
             }
-            
+
             if (onboardingStatus?.success) {
               const { completed, step } = onboardingStatus.data;
               if (!completed) {
@@ -71,11 +71,11 @@ const Login = () => {
                 }
               } else {
                 // Onboarding completed, go to landing page
-                navigate("/");
+                navigate("/feed");
               }
             } else {
               // If can't check status, default to landing page
-              navigate("/");
+              navigate("/feed");
             }
           } catch (error) {
             console.error("Error checking onboarding:", error);
@@ -98,14 +98,14 @@ const Login = () => {
         }
 
         const { data } = await axios.post("/auth/register", { name, email, password });
-        
+
         if (data.success) {
           toast.success(data.message || "Registration successful");
-          
+
           const userInfo = data.data.user;
           localStorage.setItem("userInfo", JSON.stringify(userInfo));
           setUser(userInfo);
-          
+
           // New users should start onboarding
           navigate("/onboarding/personal-info");
         }
@@ -132,9 +132,9 @@ const Login = () => {
             Join thousands of learners exchanging knowledge and building skills together.
           </p>
           <div style={styles.imageWrapper}>
-            <img 
-              src="https://media.licdn.com/dms/image/v2/D4D12AQF8Zym1URlUdw/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1675779883789?e=2147483647&v=beta&t=Sdl1tnLrAV89A5FJHCK95ruH4oA8kWjvL7YfPLRFDH4" 
-              alt="Skill Learning" 
+            <img
+              src="https://media.licdn.com/dms/image/v2/D4D12AQF8Zym1URlUdw/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1675779883789?e=2147483647&v=beta&t=Sdl1tnLrAV89A5FJHCK95ruH4oA8kWjvL7YfPLRFDH4"
+              alt="Skill Learning"
               style={styles.promoImage}
             />
             <div style={styles.badge}>

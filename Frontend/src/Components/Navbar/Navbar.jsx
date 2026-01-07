@@ -105,8 +105,8 @@ const Navbar = () => {
             {user ? (
               // Logged in navigation
               <>
-                <Link 
-                  to="/feed" 
+                <Link
+                  to="/feed"
                   className="navbar-link"
                   style={{
                     ...styles.navLink,
@@ -115,8 +115,8 @@ const Navbar = () => {
                 >
                   Feed
                 </Link>
-                <Link 
-                  to="/peer-swap" 
+                <Link
+                  to="/peer-swap"
                   className="navbar-link"
                   style={{
                     ...styles.navLink,
@@ -125,8 +125,8 @@ const Navbar = () => {
                 >
                   Peer Swap
                 </Link>
-                <Link 
-                  to="/skill-gain" 
+                <Link
+                  to="/skill-gain"
                   className="navbar-link"
                   style={{
                     ...styles.navLink,
@@ -135,8 +135,8 @@ const Navbar = () => {
                 >
                   Skill Gain
                 </Link>
-                <Link 
-                  to="/resources" 
+                <Link
+                  to="/resources"
                   className="navbar-link"
                   style={{
                     ...styles.navLink,
@@ -145,8 +145,8 @@ const Navbar = () => {
                 >
                   Resources
                 </Link>
-                <Link 
-                  to="/utilisation" 
+                <Link
+                  to="/utilisation"
                   className="navbar-link"
                   style={{
                     ...styles.navLink,
@@ -159,42 +159,42 @@ const Navbar = () => {
             ) : (
               // Not logged in navigation
               <>
-            <Link 
-              to="/" 
-              className="navbar-link"
-              style={{
-                ...styles.navLink,
-                ...(isActive('/') ? styles.activeNavLink : {})
-              }}
-            >
-              Home
-            </Link>
-            <Link 
-              to="/about_us" 
-              className="navbar-link"
-              style={{
-                ...styles.navLink,
-                ...(isActive('/about_us') ? styles.activeNavLink : {})
-              }}
-            >
-              About
-            </Link>
-            <a 
-              href="#features" 
-              className="navbar-link"
-              onClick={(e) => handleScrollToSection(e, 'features')}
-              style={styles.navLink}
-            >
-              Features
-            </a>
-            <a 
-              href="#how-it-works" 
-              className="navbar-link"
-              onClick={(e) => handleScrollToSection(e, 'how-it-works')}
-              style={styles.navLink}
-            >
-              How It Works
-            </a>
+                <Link
+                  to="/"
+                  className="navbar-link"
+                  style={{
+                    ...styles.navLink,
+                    ...(isActive('/') ? styles.activeNavLink : {})
+                  }}
+                >
+                  Home
+                </Link>
+                <Link
+                  to="/about_us"
+                  className="navbar-link"
+                  style={{
+                    ...styles.navLink,
+                    ...(isActive('/about_us') ? styles.activeNavLink : {})
+                  }}
+                >
+                  About
+                </Link>
+                <a
+                  href="#features"
+                  className="navbar-link"
+                  onClick={(e) => handleScrollToSection(e, 'features')}
+                  style={styles.navLink}
+                >
+                  Features
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="navbar-link"
+                  onClick={(e) => handleScrollToSection(e, 'how-it-works')}
+                  style={styles.navLink}
+                >
+                  How It Works
+                </a>
               </>
             )}
           </div>
@@ -256,14 +256,14 @@ const Navbar = () => {
               </div>
             ) : (
               <>
-                <button 
+                <button
                   onClick={handleLogin}
                   className="navbar-login-button"
                   style={styles.loginButton}
                 >
                   Login
                 </button>
-                <button 
+                <button
                   onClick={handleGetStarted}
                   className="navbar-get-started-button"
                   style={styles.getStartedButton}
