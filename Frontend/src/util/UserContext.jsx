@@ -2,6 +2,7 @@ import React, { useState, useEffect, createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { storeSanitizedUserData, getSanitizedUserData } from "./sanitizeUserData";
 
 const UserContext = createContext();
 
@@ -14,26 +15,39 @@ const UserContextProvider = ({ children }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       const userInfoString = localStorage.getItem("userInfo");
-      
+      const hasSessionCookie = document.cookie.includes("hasSession=true");
+
+      // If we don't have a hint from localStorage OR a cookie, don't ping the server.
+      // This prevents the console from being flooded with 401 (Unauthorized) errors.
+      if (!userInfoString && !hasSessionCookie) {
+        setLoading(false);
+        return;
+      }
+
       if (userInfoString) {
         try {
           const userInfo = JSON.parse(userInfoString);
           setUser(userInfo);
+          // Still set loading to false but we might want to refresh details 
+          // to ensure the session is still active.
           setLoading(false);
+          // If we have a session hint cookie, let's verify it in the background
+          if (hasSessionCookie) {
+            // Background refresh logic could go here
+          }
           return;
         } catch (error) {
           console.error("Error parsing userInfo:", error);
-          // If parsing fails, try to fetch from backend
         }
       }
-      
+
       // Try to fetch user data from backend (for Google OAuth or cookie-based auth)
       try {
         // Try registered user first
         try {
           const { data } = await axios.get("/user/registered/getDetails");
           if (data.success && data.data) {
-            localStorage.setItem("userInfo", JSON.stringify(data.data));
+            storeSanitizedUserData(data.data);
             setUser(data.data);
             setLoading(false);
             return;
@@ -43,7 +57,7 @@ const UserContextProvider = ({ children }) => {
           try {
             const { data } = await axios.get("/user/unregistered/getDetails");
             if (data.success && data.data) {
-              localStorage.setItem("userInfo", JSON.stringify(data.data));
+              storeSanitizedUserData(data.data);
               setUser(data.data);
               setLoading(false);
               return;
@@ -55,13 +69,13 @@ const UserContextProvider = ({ children }) => {
       } catch (error) {
         console.log("No user session found");
       }
-      
+
       setLoading(false);
       // Don't redirect logged-in users away from any page
       // Only redirect to login if on a protected route AND no user found
       const currentPath = window.location.pathname;
       const protectedRoutes = ["feed", "profile", "edit_profile", "peer-swap", "skill-gain", "resources", "utilisation", "onboarding"];
-      
+
       // Only redirect if we're on a protected route and have no user
       if (protectedRoutes.some(route => currentPath.includes(route))) {
         const userInfo = localStorage.getItem("userInfo");
@@ -72,7 +86,7 @@ const UserContextProvider = ({ children }) => {
     };
 
     fetchUserData();
-  }, [navigate]);
+  }, []); // navigate is stable, no need to include in deps
 
   if (loading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>;

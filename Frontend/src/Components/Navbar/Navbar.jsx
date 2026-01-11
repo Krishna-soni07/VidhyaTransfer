@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { FaGraduationCap, FaUser, FaSignOutAlt, FaCog } from "react-icons/fa";
+import { FaGraduationCap, FaUser, FaSignOutAlt, FaCog, FaBars, FaTimes } from "react-icons/fa";
 import { useUser } from "../../util/UserContext";
 import axios from "axios";
+
+import { useUserStore } from "../../store/useUserStore";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, setUser } = useUser();
+  const { resetOnboarding } = useUserStore();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // Close dropdown when clicking outside
@@ -20,6 +24,11 @@ const Navbar = () => {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const handleGetStarted = () => {
     navigate('/login');
@@ -34,11 +43,13 @@ const Navbar = () => {
       await axios.get("/auth/logout");
       localStorage.removeItem("userInfo");
       setUser(null);
+      resetOnboarding();
       navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
       localStorage.removeItem("userInfo");
       setUser(null);
+      resetOnboarding();
       navigate("/");
     }
   };
@@ -63,369 +74,198 @@ const Navbar = () => {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     }
+    setMobileMenuOpen(false);
   };
 
+  const navLinks = user ? [
+    { path: '/feed', label: 'Feed' },
+    { path: '/peer-swap', label: 'Peer Swap' },
+    { path: '/skill-gain', label: 'Skill Gain' },
+    { path: '/resources', label: 'Resources' },
+    { path: '/utilisation', label: 'Utilisation' }
+  ] : [
+    { path: '/', label: 'Home' },
+    { path: '/about_us', label: 'About' },
+    { path: '#features', label: 'Features', isAnchor: true },
+    { path: '#how-it-works', label: 'How It Works', isAnchor: true }
+  ];
+
   return (
-    <>
-      <style>{`
-        .navbar-link:hover {
-          color: #3B82F6 !important;
-        }
-        .navbar-login-button:hover {
-          background: #F3F4F6 !important;
-        }
-        .navbar-get-started-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
-        }
-        .profile-dropdown:hover {
-          background: #F3F4F6 !important;
-        }
-        .dropdown-menu {
-          display: ${showDropdown ? 'block' : 'none'};
-        }
-        @media (max-width: 768px) {
-          .navbar-nav-links {
-            display: none !important;
-          }
-        }
-      `}</style>
-      <nav style={styles.navbar}>
-        <div style={styles.container}>
-          {/* Logo */}
-          <Link to="/" style={styles.logo}>
-            <div style={styles.logoIcon}>
-              <FaGraduationCap style={{ fontSize: '28px', color: '#3B82F6' }} />
-            </div>
-            <span style={styles.logoText}>SkillSwap</span>
-          </Link>
-
-          {/* Navigation Links */}
-          <div style={styles.navLinks} className="navbar-nav-links">
-            {user ? (
-              // Logged in navigation
-              <>
-                <Link
-                  to="/feed"
-                  className="navbar-link"
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/feed') ? styles.activeNavLink : {})
-                  }}
-                >
-                  Feed
-                </Link>
-                <Link
-                  to="/peer-swap"
-                  className="navbar-link"
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/peer-swap') ? styles.activeNavLink : {})
-                  }}
-                >
-                  Peer Swap
-                </Link>
-                <Link
-                  to="/skill-gain"
-                  className="navbar-link"
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/skill-gain') ? styles.activeNavLink : {})
-                  }}
-                >
-                  Skill Gain
-                </Link>
-                <Link
-                  to="/resources"
-                  className="navbar-link"
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/resources') ? styles.activeNavLink : {})
-                  }}
-                >
-                  Resources
-                </Link>
-                <Link
-                  to="/utilisation"
-                  className="navbar-link"
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/utilisation') ? styles.activeNavLink : {})
-                  }}
-                >
-                  Utilisation
-                </Link>
-              </>
-            ) : (
-              // Not logged in navigation
-              <>
-                <Link
-                  to="/"
-                  className="navbar-link"
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/') ? styles.activeNavLink : {})
-                  }}
-                >
-                  Home
-                </Link>
-                <Link
-                  to="/about_us"
-                  className="navbar-link"
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/about_us') ? styles.activeNavLink : {})
-                  }}
-                >
-                  About
-                </Link>
-                <a
-                  href="#features"
-                  className="navbar-link"
-                  onClick={(e) => handleScrollToSection(e, 'features')}
-                  style={styles.navLink}
-                >
-                  Features
-                </a>
-                <a
-                  href="#how-it-works"
-                  className="navbar-link"
-                  onClick={(e) => handleScrollToSection(e, 'how-it-works')}
-                  style={styles.navLink}
-                >
-                  How It Works
-                </a>
-              </>
-            )}
+    <nav className="bg-white border-b border-gray-200 py-4 sticky top-0 z-[1000] shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+      <div className="max-w-[1400px] mx-auto px-6 flex items-center justify-between">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-3 no-underline cursor-pointer group">
+          <div className="w-10 h-10 rounded-[10px] bg-blue-50 flex items-center justify-center">
+            <FaGraduationCap className="text-[28px] text-blue-500" />
           </div>
+          <span className="text-2xl font-bold text-gray-800 font-sans">SkillSwap</span>
+        </Link>
 
-          {/* Action Buttons / Profile Dropdown */}
-          <div style={styles.actionButtons}>
-            {user ? (
-              <div className="profile-dropdown-container" style={styles.profileDropdownContainer}>
+        {/* Desktop Navigation Links */}
+        <div className="hidden md:flex items-center gap-8">
+          {navLinks.map((item) => (
+            item.isAnchor ? (
+              <a
+                key={item.path}
+                href={item.path}
+                onClick={(e) => handleScrollToSection(e, item.path.substring(1))}
+                className="text-base font-medium text-gray-500 hover:text-blue-500 no-underline transition-colors duration-200 cursor-pointer"
+              >
+                {item.label}
+              </a>
+            ) : (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`text-base font-medium no-underline transition-colors duration-200 cursor-pointer ${isActive(item.path) ? 'text-blue-500' : 'text-gray-500 hover:text-blue-500'
+                  }`}
+              >
+                {item.label}
+              </Link>
+            )
+          ))}
+        </div>
+
+        {/* Action Buttons / Profile / Hamburger */}
+        <div className="flex items-center gap-3 relative">
+          {user ? (
+            <div className="flex items-center gap-4">
+              <div className="relative profile-dropdown-container">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  style={styles.profileButton}
-                  className="profile-dropdown"
+                  className="flex items-center gap-2 px-3 py-2 bg-transparent border border-gray-200 rounded-3xl hover:bg-gray-100 transition-all duration-200 cursor-pointer"
                 >
                   <img
                     src={user.picture || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcToK4qEfbnd-RN82wdL2awn_PMviy_pelocqQ"}
                     alt="Profile"
-                    style={styles.profileImage}
+                    className="w-8 h-8 rounded-full object-cover"
                   />
-                  <span style={styles.profileName}>{user.name || user.username || "Profile"}</span>
+                  <span className="hidden sm:inline text-sm font-medium text-gray-800">{user.name || user.username || "Profile"}</span>
                 </button>
                 {showDropdown && (
-                  <div style={styles.dropdownMenu} className="dropdown-menu">
+                  <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl min-w-[200px] z-[1001] overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
                     {user.username ? (
                       <Link
                         to={`/profile/${user.username}`}
-                        style={styles.dropdownItem}
+                        className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors bg-transparent border-none text-left no-underline"
                         onClick={() => setShowDropdown(false)}
                       >
-                        <FaUser style={{ marginRight: '8px' }} />
+                        <FaUser className="mr-3 text-gray-400" />
                         Profile
                       </Link>
                     ) : (
                       <Link
                         to="/profile"
-                        style={styles.dropdownItem}
+                        className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors bg-transparent border-none text-left no-underline"
                         onClick={() => setShowDropdown(false)}
                       >
-                        <FaUser style={{ marginRight: '8px' }} />
+                        <FaUser className="mr-3 text-gray-400" />
                         Profile
                       </Link>
                     )}
                     <Link
                       to="/settings"
-                      style={styles.dropdownItem}
+                      className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors bg-transparent border-none text-left no-underline"
                       onClick={() => setShowDropdown(false)}
                     >
-                      <FaCog style={{ marginRight: '8px' }} />
+                      <FaCog className="mr-3 text-gray-400" />
                       Settings
                     </Link>
                     <button
                       onClick={handleLogout}
-                      style={styles.dropdownItem}
+                      className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors bg-transparent border-none text-left cursor-pointer font-medium border-t border-gray-50"
                     >
-                      <FaSignOutAlt style={{ marginRight: '8px' }} />
+                      <FaSignOutAlt className="mr-3" />
                       Logout
                     </button>
                   </div>
                 )}
               </div>
-            ) : (
-              <>
+              <button
+                className="md:hidden text-2xl text-gray-600 p-2"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <FaTimes /> : <FaBars />}
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="hidden sm:flex items-center gap-3">
                 <button
                   onClick={handleLogin}
-                  className="navbar-login-button"
-                  style={styles.loginButton}
+                  className="px-5 py-2.5 bg-transparent text-gray-700 hover:bg-gray-100 rounded-lg text-base font-medium transition-all duration-200 cursor-pointer border-none"
                 >
                   Login
                 </button>
                 <button
                   onClick={handleGetStarted}
-                  className="navbar-get-started-button"
-                  style={styles.getStartedButton}
+                  className="px-6 py-2.5 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-3xl text-base font-semibold transition-all duration-200 shadow-md hover:-translate-y-0.5 hover:shadow-blue-500/40 cursor-pointer border-none"
                 >
                   Get Started
                 </button>
-              </>
+              </div>
+              <button
+                className="md:hidden text-2xl text-gray-600 p-2"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <FaTimes /> : <FaBars />}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 top-[73px] bg-white z-[999] animate-fadeIn">
+          <div className="p-6 flex flex-col gap-4">
+            {navLinks.map((item) => (
+              item.isAnchor ? (
+                <a
+                  key={item.path}
+                  href={item.path}
+                  onClick={(e) => handleScrollToSection(e, item.path.substring(1))}
+                  className="text-xl font-semibold text-gray-800 no-underline py-2 border-b border-gray-100"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`text-xl font-semibold no-underline py-2 border-b border-gray-100 ${isActive(item.path) ? 'text-blue-500' : 'text-gray-800'
+                    }`}
+                >
+                  {item.label}
+                </Link>
+              )
+            ))}
+            {!user && (
+              <div className="flex flex-col gap-3 mt-4">
+                <button
+                  onClick={handleLogin}
+                  className="w-full py-4 bg-gray-100 text-gray-800 rounded-xl font-bold transition-all"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={handleGetStarted}
+                  className="w-full py-4 bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-200"
+                >
+                  Get Started
+                </button>
+              </div>
             )}
           </div>
         </div>
-      </nav>
-    </>
+      )}
+    </nav>
   );
 };
-
-const styles = {
-  navbar: {
-    background: '#FFFFFF',
-    borderBottom: '1px solid #E5E7EB',
-    padding: '16px 0',
-    position: 'sticky',
-    top: 0,
-    zIndex: 1000,
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-  },
-  container: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '0 24px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  logo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    textDecoration: 'none',
-    cursor: 'pointer',
-  },
-  logoIcon: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '10px',
-    background: '#EFF6FF',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoText: {
-    fontSize: '1.5rem',
-    fontWeight: '700',
-    color: '#1F2937',
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-  navLinks: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '32px',
-  },
-  navLink: {
-    fontSize: '1rem',
-    fontWeight: '500',
-    color: '#6B7280',
-    textDecoration: 'none',
-    transition: 'color 0.2s ease',
-    cursor: 'pointer',
-  },
-  activeNavLink: {
-    color: '#3B82F6',
-  },
-  actionButtons: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    position: 'relative',
-  },
-  loginButton: {
-    padding: '10px 20px',
-    background: 'transparent',
-    color: '#374151',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '1rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  getStartedButton: {
-    padding: '10px 24px',
-    background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '24px',
-    fontSize: '1rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-  },
-  profileDropdownContainer: {
-    position: 'relative',
-  },
-  profileButton: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '8px 12px',
-    background: 'transparent',
-    border: '1px solid #E5E7EB',
-    borderRadius: '24px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  profileImage: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-  },
-  profileName: {
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    color: '#1F2937',
-  },
-  dropdownMenu: {
-    position: 'absolute',
-    top: '100%',
-    right: 0,
-    marginTop: '8px',
-    background: 'white',
-    border: '1px solid #E5E7EB',
-    borderRadius: '12px',
-    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
-    minWidth: '180px',
-    zIndex: 1001,
-    overflow: 'hidden',
-  },
-  dropdownItem: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '12px 16px',
-    fontSize: '0.875rem',
-    color: '#374151',
-    textDecoration: 'none',
-    background: 'transparent',
-    border: 'none',
-    width: '100%',
-    textAlign: 'left',
-    cursor: 'pointer',
-    transition: 'background 0.2s ease',
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-};
-
-// Add hover effect for dropdown items
-const styleSheet = document.createElement('style');
-styleSheet.textContent = `
-  .dropdown-item:hover {
-    background: #F3F4F6 !important;
-  }
-`;
-document.head.appendChild(styleSheet);
 
 export default Navbar;

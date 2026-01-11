@@ -11,14 +11,18 @@ import { sendMail } from "../../utils/SendMail.js";
 export const userDetailsWithoutID = asyncHandler(async (req, res) => {
   console.log("\n******** Inside userDetailsWithoutID Controller function ********");
 
-  return res.status(200).json(new ApiResponse(200, req.user, "User details fetched successfully"));
+  // Remove sensitive fields before sending
+  const { password, resetPasswordToken, resetPasswordExpires, __v, ...safeUser } = req.user.toObject ? req.user.toObject() : req.user;
+
+  return res.status(200).json(new ApiResponse(200, safeUser, "User details fetched successfully"));
 });
 
 export const UserDetails = asyncHandler(async (req, res) => {
   console.log("\n******** Inside UserDetails Controller function ********");
   const username = req.params.username;
 
-  const user = await User.findOne({ username: username });
+  const user = await User.findOne({ username: username })
+    .select('-password -resetPasswordToken -resetPasswordExpires -__v');
   if (!user) {
     throw new ApiError(404, "User not found");
   }
@@ -548,7 +552,8 @@ export const discoverUsers = asyncHandler(async (req, res) => {
 
   //  fetch all users except the current user
 
-  const users = await User.find({ username: { $ne: req.user.username } });
+  const users = await User.find({ username: { $ne: req.user.username } })
+    .select("-password -phone -personalInfo -resetPasswordToken -resetPasswordExpires -__v");
 
   // now make three seperate list of the users who are proficient in the skills that the current user wants to learn, the users who are proficient in the web development skills and the users who are proficient in the machine learning skills and others also limit the size of the array to 5;
 

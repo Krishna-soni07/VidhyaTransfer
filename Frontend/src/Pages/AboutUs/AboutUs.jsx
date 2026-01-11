@@ -1,62 +1,63 @@
 import React from "react";
-import "./AboutUs.css";
 import { FaBullseye, FaEye, FaUsers } from "react-icons/fa";
 
 const AboutUs = () => {
   return (
-    <div style={styles.container}>
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-sky-100 to-gray-50 font-sans">
       {/* Hero Section */}
-      <div style={styles.heroSection}>
-        <h1 style={styles.heroTitle}>About Vidya Transfer</h1>
-        <p style={styles.heroSubtitle}>
+      <div className="pt-24 px-6 pb-20 text-center max-w-[1200px] mx-auto">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black bg-gradient-to-br from-teal-500 via-blue-500 to-emerald-500 bg-clip-text text-transparent mb-6 tracking-tighter">
+          About Vidya Transfer
+        </h1>
+        <p className="text-base md:text-xl text-slate-600 leading-relaxed max-w-[800px] mx-auto">
           Reimagining peer-to-peer learning through innovative technology and community-driven knowledge sharing.
         </p>
       </div>
 
       {/* Main Content Section */}
-      <div style={styles.contentSection}>
-        <div style={styles.contentWrapper}>
+      <div className="px-6 pb-24 max-w-[1400px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
           {/* Left Side - Mission and Vision Cards */}
-          <div style={styles.cardsContainer}>
+          <div className="flex flex-col gap-8">
             {/* Mission Card */}
-            <div style={styles.card}>
-              <div style={styles.cardIcon} className="mission-icon">
-                <FaBullseye style={{ fontSize: '24px', color: 'white' }} />
+            <div className="bg-white/70 backdrop-blur-md rounded-3xl p-10 border border-white/80 shadow-lg relative transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-gradient-to-br from-blue-500 to-blue-600">
+                <FaBullseye className="text-2xl text-white" />
               </div>
-              <h2 style={styles.cardTitle}>Our Mission</h2>
-              <p style={styles.cardText}>
-                To democratize learning by creating a platform where anyone can share their knowledge and learn from others. 
-                We believe that everyone has something valuable to teach and something meaningful to learn, breaking down 
+              <h2 className="text-3xl font-bold text-slate-800 mb-4">Our Mission</h2>
+              <p className="text-base text-slate-600 leading-relaxed m-0">
+                To democratize learning by creating a platform where anyone can share their knowledge and learn from others.
+                We believe that everyone has something valuable to teach and something meaningful to learn, breaking down
                 traditional barriers to education.
               </p>
             </div>
 
             {/* Vision Card */}
-            <div style={styles.card}>
-              <div style={styles.cardIcon} className="vision-icon">
-                <FaEye style={{ fontSize: '24px', color: 'white' }} />
+            <div className="bg-white/70 backdrop-blur-md rounded-3xl p-10 border border-white/80 shadow-lg relative transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-gradient-to-br from-amber-500 to-amber-600">
+                <FaEye className="text-2xl text-white" />
               </div>
-              <h2 style={styles.cardTitle}>Our Vision</h2>
-              <p style={styles.cardText}>
-                To build a global community where knowledge is accessible, learning is collaborative, and every interaction 
-                creates value for both teachers and students. We envision a future where skills are shared freely and 
+              <h2 className="text-3xl font-bold text-slate-800 mb-4">Our Vision</h2>
+              <p className="text-base text-slate-600 leading-relaxed m-0">
+                To build a global community where knowledge is accessible, learning is collaborative, and every interaction
+                creates value for both teachers and students. We envision a future where skills are shared freely and
                 communities grow stronger through collective wisdom.
               </p>
             </div>
           </div>
 
           {/* Right Side - Community Visual */}
-          <div style={styles.communityCard}>
-            <div style={styles.communityImageWrapper}>
-              <img 
-                src="https://media.licdn.com/dms/image/v2/D4D12AQF8Zym1URlUdw/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1675779883789?e=2147483647&v=beta&t=Sdl1tnLrAV89A5FJHCK95ruH4oA8kWjvL7YfPLRFDH4" 
-                alt="Community" 
-                style={styles.communityImage}
+          <div className="bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-white/80 shadow-lg flex flex-col gap-6">
+            <div className="w-full rounded-2xl overflow-hidden bg-slate-100">
+              <img
+                src="https://media.licdn.com/dms/image/v2/D4D12AQF8Zym1URlUdw/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1675779883789?e=2147483647&v=beta&t=Sdl1tnLrAV89A5FJHCK95ruH4oA8kWjvL7YfPLRFDH4"
+                alt="Community"
+                className="w-full h-auto block"
               />
             </div>
-            <div style={styles.communityBadge}>
-              <FaUsers style={{ fontSize: '20px', color: '#3B82F6' }} />
-              <span style={styles.badgeText}>10,000+ Community Members</span>
+            <div className="flex items-center gap-3 px-5 py-4 bg-white rounded-xl shadow-sm">
+              <FaUsers className="text-xl text-blue-500" />
+              <span className="text-base font-semibold text-slate-800">10,000+ Community Members</span>
             </div>
           </div>
         </div>
@@ -64,140 +65,5 @@ const AboutUs = () => {
     </div>
   );
 };
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    background: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 50%, #F9FAFB 100%)',
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-  heroSection: {
-    padding: '100px 24px 80px',
-    textAlign: 'center',
-    maxWidth: '1200px',
-    margin: '0 auto',
-  },
-  heroTitle: {
-    fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-    fontWeight: '900',
-    background: 'linear-gradient(135deg, #14B8A6 0%, #3B82F6 50%, #10B981 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    marginBottom: '24px',
-    letterSpacing: '-2px',
-  },
-  heroSubtitle: {
-    fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-    color: '#475569',
-    lineHeight: '1.7',
-    maxWidth: '800px',
-    margin: '0 auto',
-  },
-  contentSection: {
-    padding: '0 24px 100px',
-    maxWidth: '1400px',
-    margin: '0 auto',
-  },
-  contentWrapper: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '40px',
-    alignItems: 'start',
-  },
-  cardsContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '32px',
-  },
-  card: {
-    background: 'rgba(255, 255, 255, 0.7)',
-    backdropFilter: 'blur(10px)',
-    borderRadius: '24px',
-    padding: '40px',
-    border: '1px solid rgba(255, 255, 255, 0.8)',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-    position: 'relative',
-    transition: 'all 0.3s ease',
-  },
-  cardIcon: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '16px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: '20px',
-  },
-  cardTitle: {
-    fontSize: '1.75rem',
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: '16px',
-  },
-  cardText: {
-    fontSize: '1rem',
-    color: '#475569',
-    lineHeight: '1.7',
-    margin: 0,
-  },
-  communityCard: {
-    background: 'rgba(255, 255, 255, 0.7)',
-    backdropFilter: 'blur(10px)',
-    borderRadius: '24px',
-    padding: '32px',
-    border: '1px solid rgba(255, 255, 255, 0.8)',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  communityImageWrapper: {
-    width: '100%',
-    borderRadius: '16px',
-    overflow: 'hidden',
-    background: '#F1F5F9',
-  },
-  communityImage: {
-    width: '100%',
-    height: 'auto',
-    display: 'block',
-  },
-  communityBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '16px 20px',
-    background: 'white',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-  },
-  badgeText: {
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: '#1E293B',
-  },
-};
-
-// Add CSS for icon colors
-const styleSheet = document.createElement('style');
-styleSheet.textContent = `
-  .mission-icon {
-    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-  }
-  .vision-icon {
-    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-  }
-  .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12) !important;
-  }
-  @media (max-width: 1024px) {
-    .content-wrapper {
-      grid-template-columns: 1fr !important;
-    }
-  }
-`;
-document.head.appendChild(styleSheet);
 
 export default AboutUs;

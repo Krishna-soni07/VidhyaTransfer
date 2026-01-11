@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { skills } from "../Register/Skills";
-import "./Feed.css";
 
 const CreatePostModal = ({ onClose, onSubmit }) => {
   const [content, setContent] = useState("");
@@ -63,18 +62,24 @@ const CreatePostModal = ({ onClose, onSubmit }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">Create New Post</h2>
-          <button className="modal-close" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden transform transition-all"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800">Create New Post</h2>
+          <button
+            className="text-gray-400 hover:text-gray-600 transition-colors text-2xl"
+            onClick={onClose}
+          >
             ×
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="create-post-form">
-          <div className="form-group">
-            <label htmlFor="content">What's on your mind?</label>
+        <form onSubmit={handleSubmit} className="p-6">
+          <div className="mb-6 relative">
+            <label htmlFor="content" className="sr-only">What's on your mind?</label>
             <textarea
               id="content"
               value={content}
@@ -83,17 +88,18 @@ const CreatePostModal = ({ onClose, onSubmit }) => {
               rows="6"
               maxLength={1000}
               required
+              className="w-full text-base text-gray-700 placeholder-gray-400 bg-gray-50 rounded-lg p-4 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
             />
-            <span className="char-count">{content.length}/1000</span>
+            <span className="absolute bottom-3 right-3 text-xs text-gray-400">{content.length}/1000</span>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="skills">Add Skills (Optional)</label>
-            <div className="skill-selector">
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Add Skills (Optional)</label>
+            <div className="flex flex-col sm:flex-row gap-2 mb-3">
               <select
                 value={selectedSkill}
                 onChange={(e) => setSelectedSkill(e.target.value)}
-                className="skill-select-input"
+                className="flex-1 p-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               >
                 <option>Select a skill</option>
                 {skills.map((skill) => (
@@ -105,7 +111,7 @@ const CreatePostModal = ({ onClose, onSubmit }) => {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="category-select-input"
+                className="flex-1 p-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               >
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -116,21 +122,21 @@ const CreatePostModal = ({ onClose, onSubmit }) => {
               <button
                 type="button"
                 onClick={handleAddSkill}
-                className="btn-add-skill-modal"
+                className="px-6 py-2.5 bg-gray-800 text-white font-medium rounded-lg hover:bg-gray-900 transition-colors"
               >
                 Add
               </button>
             </div>
 
             {selectedSkills.length > 0 && (
-              <div className="selected-skills">
+              <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
                 {selectedSkills.map((skill, index) => (
-                  <span key={index} className="skill-tag-modal">
+                  <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-blue-700 border border-blue-100 shadow-sm">
                     {skill.name}
                     <button
                       type="button"
                       onClick={() => handleRemoveSkill(index)}
-                      className="remove-skill-tag"
+                      className="ml-2 text-blue-400 hover:text-red-500 transition-colors"
                     >
                       ×
                     </button>
@@ -140,11 +146,19 @@ const CreatePostModal = ({ onClose, onSubmit }) => {
             )}
           </div>
 
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn-cancel">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 text-gray-600 bg-white border border-gray-300 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
               Cancel
             </button>
-            <button type="submit" className="btn-submit" disabled={loading}>
+            <button
+              type="submit"
+              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
               {loading ? "Posting..." : "Post"}
             </button>
           </div>

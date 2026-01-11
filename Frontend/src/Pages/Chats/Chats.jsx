@@ -56,10 +56,6 @@ const Chats = () => {
       socket.emit("setup", user);
     }
     socket.on("message recieved", (newMessageRecieved) => {
-      console.log("New Message Recieved: ", newMessageRecieved);
-      console.log("Selected Chat: ", selectedChat);
-      console.log("Selected Chat ID: ", selectedChat.id);
-      console.log("New Message Chat ID: ", newMessageRecieved.chatId._id);
       if (selectedChat && selectedChat.id === newMessageRecieved.chatId._id) {
         setChatMessages((prevState) => [...prevState, newMessageRecieved]);
       }
@@ -73,9 +69,8 @@ const Chats = () => {
     try {
       setChatLoading(true);
       const tempUser = JSON.parse(localStorage.getItem("userInfo"));
-      const { data } = await axios.get("http://localhost:8000/chat");
-      // console.log("Chats", data.data);
-      toast.success(data.message);
+      const { data } = await axios.get("/chat");
+      //       toast.success(data.message);
       if (tempUser?._id) {
         const temp = data.data.map((chat) => {
           return {
@@ -87,9 +82,7 @@ const Chats = () => {
         });
         setChats(temp);
       }
-      // console.log(temp);
-    } catch (err) {
-      console.log(err);
+      //     } catch (err) {
       if (err?.response?.data?.message) {
         toast.error(err.response.data.message);
         if (err.response.data.message === "Please Login") {
@@ -113,19 +106,14 @@ const Chats = () => {
   const handleChatClick = async (chatId) => {
     try {
       setChatMessageLoading(true);
-      const { data } = await axios.get(`http://localhost:8000/message/getMessages/${chatId}`);
+      const { data } = await axios.get(`/message/getMessages/${chatId}`);
       setChatMessages(data.data);
-      // console.log("Chat Messages:", data.data);
-      setMessage("");
-      // console.log("Chats: ", chats);
-      const chatDetails = chats.find((chat) => chat.id === chatId);
+      //       setMessage("");
+      //       const chatDetails = chats.find((chat) => chat.id === chatId);
       setSelectedChat(chatDetails);
-      // console.log("selectedChat", chatDetails);
-      // console.log("Data", data.message);
-      socket.emit("join chat", chatId);
+      //       //       socket.emit("join chat", chatId);
       toast.success(data.message);
     } catch (err) {
-      console.log(err);
       if (err?.response?.data?.message) {
         toast.error(err.response.data.message);
         if (err.response.data.message === "Please Login") {
@@ -150,14 +138,11 @@ const Chats = () => {
         return;
       }
       const { data } = await axios.post("/message/sendMessage", { chatId: selectedChat.id, content: message });
-      // console.log("after sending message", data);
-      socket.emit("new message", data.data);
+      //       socket.emit("new message", data.data);
       setChatMessages((prevState) => [...prevState, data.data]);
       setMessage("");
-      // console.log("Data", data.message);
-      toast.success(data.message);
+      //       toast.success(data.message);
     } catch (err) {
-      console.log(err);
       if (err?.response?.data?.message) {
         toast.error(err.response.data.message);
         if (err.response.data.message === "Please Login") {
@@ -177,10 +162,8 @@ const Chats = () => {
       setRequestLoading(true);
       const { data } = await axios.get("/request/getRequests");
       setRequests(data.data);
-      console.log(data.data);
       toast.success(data.message);
     } catch (err) {
-      console.log(err);
       if (err?.response?.data?.message) {
         toast.error(err.response.data.message);
         if (err.response.data.message === "Please Login") {
@@ -215,17 +198,14 @@ const Chats = () => {
   };
 
   const handleRequestAccept = async (e) => {
-    console.log("Request accepted");
 
     try {
       setAcceptRequestLoading(true);
       const { data } = await axios.post("/request/acceptRequest", { requestId: selectedRequest._id });
-      console.log(data);
       toast.success(data.message);
       // remove this request from the requests list
       setRequests((prevState) => prevState.filter((request) => request._id !== selectedRequest._id));
     } catch (err) {
-      console.log(err);
       if (err?.response?.data?.message) {
         toast.error(err.response.data.message);
         if (err.response.data.message === "Please Login") {
@@ -244,15 +224,12 @@ const Chats = () => {
   };
 
   const handleRequestReject = async () => {
-    console.log("Request rejected");
     try {
       setAcceptRequestLoading(true);
       const { data } = axios.post("/request/rejectRequest", { requestId: selectedRequest._id });
-      console.log(data);
       toast.success(data.message);
       setRequests((prevState) => prevState.filter((request) => request._id !== selectedRequest._id));
     } catch (err) {
-      console.log(err);
       if (err?.response?.data?.message) {
         toast.error(err.response.data.message);
         if (err.response.data.message === "Please Login") {
@@ -463,33 +440,30 @@ const Chats = () => {
             >
               {selectedChat ? (
                 <ScrollableFeed forceScroll="true">
-                  {chatMessages.map((message, index) => {
-                    // console.log("user:", user._id);
-                    // console.log("sender:", message.sender);
-                    return (
+                  {chatMessages.map((message, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        display: "flex",
+                        justifyContent: message.sender._id == user._id ? "flex-end" : "flex-start",
+                        marginBottom: "10px",
+                      }}
+                    >
                       <div
-                        key={index}
                         style={{
-                          display: "flex",
-                          justifyContent: message.sender._id == user._id ? "flex-end" : "flex-start",
-                          marginBottom: "10px",
+                          backgroundColor: message.sender._id === user._id ? "#3BB4A1" : "#2d2d2d",
+                          color: "#ffffff",
+                          padding: "10px",
+                          borderRadius: "10px",
+                          maxWidth: "70%",
+                          textAlign: message.sender._id == user._id ? "right" : "left",
                         }}
                       >
-                        <div
-                          style={{
-                            backgroundColor: message.sender._id === user._id ? "#3BB4A1" : "#2d2d2d",
-                            color: "#ffffff",
-                            padding: "10px",
-                            borderRadius: "10px",
-                            maxWidth: "70%",
-                            textAlign: message.sender._id == user._id ? "right" : "left",
-                          }}
-                        >
-                          {message.content}
-                        </div>
+                        {message.content}
                       </div>
-                    );
-                  })}
+                    </div>
+                  )
+                  )}
                 </ScrollableFeed>
               ) : (
                 <>
@@ -609,7 +583,6 @@ const Chats = () => {
                       time: "",
                     });
                   } catch (error) {
-                    console.log(error);
                     if (error?.response?.data?.message) {
                       toast.error(error.response.data.message);
                       if (error.response.data.message === "Please Login") {

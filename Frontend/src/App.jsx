@@ -21,6 +21,9 @@ import OnboardingGuard from "./util/OnboardingGuard";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import ForgotPassword from "./Pages/Login/ForgotPassword";
+import ResetPassword from "./Pages/Login/ResetPassword";
+
 const App = () => {
   return (
     <>
@@ -29,37 +32,39 @@ const App = () => {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/about_us" element={<AboutUs />} />
-        
+
         {/* Onboarding Routes */}
         <Route element={<PrivateRoutes />}>
           <Route path="/onboarding/personal-info" element={<PersonalInfo />} />
           <Route path="/onboarding/skills" element={<SkillProfile />} />
           <Route path="/onboarding/preferences" element={<Preferences />} />
-          
+
           {/* Feed Route - Protected and checks onboarding */}
-          <Route 
-            path="/feed" 
+          <Route
+            path="/feed"
             element={
               <OnboardingGuard>
                 <Feed />
               </OnboardingGuard>
-            } 
+            }
           />
-          
+
           {/* Navigation Pages */}
           <Route path="/peer-swap" element={<PeerSwap />} />
           <Route path="/skill-gain" element={<SkillGain />} />
           <Route path="/resources" element={<Resources />} />
           <Route path="/utilisation" element={<Utilisation />} />
-          
+
           {/* Profile Routes */}
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit_profile" element={<EditProfile />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
-        
+
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />

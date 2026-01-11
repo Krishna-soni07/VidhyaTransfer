@@ -19,9 +19,7 @@ const Rating = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Handle form submission here, e.g., sending data to a server
-    console.log("Rating:", rating);
-    console.log("Review:", review);
-    if (rating === 0) {
+            if (rating === 0) {
       toast.error("Please select a rating");
       return;
     }
@@ -37,13 +35,11 @@ const Rating = () => {
         description: review,
         username: user.username,
       });
-      console.log(data);
-      toast.success(data.message);
+            toast.success(data.message);
       setRating(0);
       setReview("");
     } catch (error) {
-      console.error(error);
-      if (error?.response?.data?.message) {
+            if (error?.response?.data?.message) {
         toast.error(error.response.data.message);
         if (error.response.data.message === "Please Login") {
           localStorage.removeItem("userInfo");

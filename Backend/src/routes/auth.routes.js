@@ -6,6 +6,8 @@ import {
   handleLogout,
   registerWithEmailPassword,
   loginWithEmailPassword,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/auth/auth.controllers.js";
 
 const router = Router();
@@ -17,6 +19,8 @@ router.get("/google/callback", googleAuthCallback, handleGoogleLoginCallback);
 // Email/Password routes
 router.post("/register", registerWithEmailPassword);
 router.post("/login", loginWithEmailPassword);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 // Logout
 router.get("/logout", handleLogout);

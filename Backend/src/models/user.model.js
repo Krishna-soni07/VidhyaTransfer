@@ -51,7 +51,7 @@ const userSchema = new Schema(
           default: "General",
         },
         proficiency: {
-        type: String,
+          type: String,
           enum: ["Beginner", "Intermediate", "Advanced", "Expert"],
           default: "Intermediate",
         },
@@ -118,7 +118,7 @@ const userSchema = new Schema(
         {
           type: String,
         },
-    ],
+      ],
     },
     education: [
       {
@@ -182,6 +182,14 @@ const userSchema = new Schema(
         },
       },
     ],
+    resetPasswordToken: {
+      type: String,
+      default: null,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

@@ -3,6 +3,20 @@ import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { User } from "../../models/user.model.js";
 import { UnRegisteredUser } from "../../models/unRegisteredUser.model.js";
+import { generateJWTToken_username } from "../../utils/generateJWTToken.js";
+
+// Helper to generate unique username
+const generateUniqueUsername = async (name) => {
+  let base = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (base.length < 3) base = "user";
+  let username = base;
+  let count = 1;
+  while (await User.findOne({ username })) {
+    username = `${base}${count}`;
+    count++;
+  }
+  return username;
+};
 
 // Step 1: Personal Info
 export const updatePersonalInfo = asyncHandler(async (req, res) => {
@@ -42,14 +56,14 @@ export const updatePersonalInfo = asyncHandler(async (req, res) => {
 
   user.name = name;
   user.email = email;
-  
+
   // Store in personalInfo object (Sprint 2 requirement)
   if (!user.personalInfo) {
     user.personalInfo = {};
   }
   user.personalInfo.age = age || null;
   user.personalInfo.country = country;
-  
+
   user.onboardingStep = 1;
 
   await user.save();
@@ -123,6 +137,7 @@ export const updateSkillProfile = asyncHandler(async (req, res) => {
   );
 });
 
+
 // Step 3: Preferences
 export const updatePreferences = asyncHandler(async (req, res) => {
   const { preferences } = req.body;
@@ -140,15 +155,19 @@ export const updatePreferences = asyncHandler(async (req, res) => {
   }
 
   let user = null;
+  let isUnregistered = false;
+
   if (userId) {
     user = await User.findById(userId);
     if (!user) {
       user = await UnRegisteredUser.findById(userId);
+      isUnregistered = true;
     }
   } else if (userEmail) {
     user = await User.findOne({ email: userEmail });
     if (!user) {
       user = await UnRegisteredUser.findOne({ email: userEmail });
+      isUnregistered = true;
     }
   }
 
@@ -156,7 +175,7 @@ export const updatePreferences = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
-  // Update preferences object (Sprint 2 structure)
+  // Update preferences logic
   user.preferences = {
     ...user.preferences,
     ...preferences,
@@ -166,11 +185,52 @@ export const updatePreferences = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  const userData = { ...user.toObject() };
-  if (userData.password) delete userData.password;
+  let finalUser = user;
+
+  // If user was unregistered, migrate to User collection
+  if (isUnregistered) {
+    const username = await generateUniqueUsername(user.name);
+
+    // Create new User
+    const newUser = await User.create({
+      name: user.name,
+      email: user.email,
+      password: user.password,
+      picture: user.picture,
+      username: username,
+      // Map other fields
+      personalInfo: user.personalInfo,
+      skillsProficientAt: user.skillsProficientAt,
+      skillsToLearn: user.skillsToLearn,
+      preferences: user.preferences,
+      onboardingCompleted: true,
+      onboardingStep: 3,
+      // Copy timestamps if needed, or let them be new
+    });
+
+    // Delete unregistered user
+    await UnRegisteredUser.findByIdAndDelete(user._id);
+    finalUser = newUser;
+  }
+
+  // Generate proper access token for User (username-based)
+  const jwtToken = generateJWTToken_username(finalUser);
+  const expiryDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  // Set both cookies to be safe, or just accessToken
+  res.cookie("accessToken", jwtToken, { httpOnly: true, expires: expiryDate, secure: false });
+  // Clear registration token
+  res.clearCookie("accessTokenRegistration");
+
+  // Remove ALL sensitive fields before sending
+  const userData = { ...finalUser.toObject() };
+  delete userData.password;
+  delete userData.resetPasswordToken;
+  delete userData.resetPasswordExpires;
+  delete userData.__v;
 
   return res.status(200).json(
-    new ApiResponse(200, { user: userData }, "Preferences updated successfully")
+    new ApiResponse(200, { user: userData }, "Preferences updated and onboarding completed")
   );
 });
 

@@ -4,6 +4,7 @@ import { useUser } from "../../util/UserContext";
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { storeSanitizedUserData } from "../../util/sanitizeUserData";
 import { NavLink } from "react-router-dom";
 import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
@@ -36,9 +37,8 @@ const Discover = () => {
       try {
         setLoading(true);
         const { data } = await axios.get(`/user/registered/getDetails`);
-        console.log(data.data);
-        setUser(data.data);
-        localStorage.setItem("userInfo", JSON.stringify(data.data));
+                setUser(data.data);
+        storeSanitizedUserData(data.data);
       } catch (error) {
         console.log(error);
         if (error?.response?.data?.message) {
@@ -53,8 +53,7 @@ const Discover = () => {
     const getDiscoverUsers = async () => {
       try {
         const { data } = await axios.get("/user/discover");
-        console.log(data);
-        setDiscoverUsers(data.data.forYou);
+                setDiscoverUsers(data.data.forYou);
         setWebDevUsers(data.data.webDev);
         setMlUsers(data.data.ml);
         setOtherUsers(data.data.others);

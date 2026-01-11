@@ -7,19 +7,39 @@ import { toast } from "react-toastify";
 const OnboardingGuard = ({ children }) => {
   const { user } = useUser();
   const navigate = useNavigate();
-  const [checking, setChecking] = useState(true);
+  const [checking, setChecking] = useState(false); // Changed to false by default
 
   useEffect(() => {
     const checkOnboarding = async () => {
-      // Check localStorage first
+      // Check localStorage first for quick access
       const userInfo = localStorage.getItem("userInfo");
+
       if (!user && !userInfo) {
         // No user found, redirect to login
         navigate("/login", { replace: true });
-        setChecking(false);
         return;
       }
 
+      // Parse user info from localStorage
+      let parsedUser = null;
+      try {
+        parsedUser = userInfo ? JSON.parse(userInfo) : user;
+      } catch (e) {
+        parsedUser = user;
+      }
+
+      // If user has onboardingCompleted flag in localStorage, skip API check
+      if (parsedUser?.onboardingCompleted === true) {
+        return;
+      }
+
+      // If user has username, they're likely a registered user who completed onboarding
+      if (parsedUser?.username) {
+        return;
+      }
+
+      // Only make API call if we're unsure about onboarding status
+      setChecking(true);
       try {
         // Check onboarding status - try registered first (most common case)
         let onboardingData;
@@ -68,12 +88,7 @@ const OnboardingGuard = ({ children }) => {
       }
     };
 
-    // Small delay to ensure user context is loaded
-    const timer = setTimeout(() => {
-      checkOnboarding();
-    }, 100);
-
-    return () => clearTimeout(timer);
+    checkOnboarding();
   }, [user, navigate]);
 
   if (checking) {
@@ -85,24 +100,24 @@ const OnboardingGuard = ({ children }) => {
             100% { transform: rotate(360deg); }
           }
         `}</style>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           height: '100vh',
-          background: 'var(--grey)'
+          background: '#f9fafb'
         }}>
-          <div style={{ textAlign: 'center', color: 'white', fontFamily: 'var(--secfont)' }}>
+          <div style={{ textAlign: 'center', color: '#374151' }}>
             <div style={{
-              border: '3px solid rgba(59, 180, 161, 0.3)',
-              borderTop: '3px solid var(--cyan)',
+              border: '3px solid rgba(59, 130, 246, 0.3)',
+              borderTop: '3px solid #3b82f6',
               borderRadius: '50%',
               width: '40px',
               height: '40px',
               animation: 'spin 1s linear infinite',
               margin: '0 auto 1rem'
             }}></div>
-            <p>Checking onboarding status...</p>
+            <p>Verifying access...</p>
           </div>
         </div>
       </>
@@ -113,4 +128,3 @@ const OnboardingGuard = ({ children }) => {
 };
 
 export default OnboardingGuard;
-

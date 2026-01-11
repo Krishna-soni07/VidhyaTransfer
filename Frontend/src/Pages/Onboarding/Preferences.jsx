@@ -1,69 +1,48 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
-import "./Onboarding.css";
+import { useUser } from "../../util/UserContext";
+import { useUserStore } from "../../store/useUserStore";
+import { storeSanitizedUserData } from "../../util/sanitizeUserData";
 
-const Preferences = ({ onComplete }) => {
+const Preferences = () => {
   const navigate = useNavigate();
+  const { updatePreferences, completeOnboarding, onboardingData } = useUserStore();
+  const { setUser } = useUser();
   const [loading, setLoading] = useState(false);
+
+  // Local state
   const [preferences, setPreferences] = useState({
-    notifications: true,
-    autoMatch: false,
-    availability: 0,
-    mode: "Online",
-    skillsInterestedInLearning: [],
+    notifications: onboardingData.preferences.notifications ?? true,
+    autoMatch: onboardingData.preferences.autoMatch ?? false,
+    availability: onboardingData.preferences.availability ?? 0,
+    mode: onboardingData.preferences.mode ?? "Online",
+    skillsInterestedInLearning: onboardingData.preferences.skillsInterestedInLearning ?? [], // This seems redundant with "Desired Skills" but keeping it to match existing backend
   });
   const [newSkill, setNewSkill] = useState("");
 
   useEffect(() => {
-    // Load existing preferences if available
-    const loadPreferences = async () => {
-      try {
-        const userData = await axios.get("/user/registered/getDetails");
-        if (userData.data.success && userData.data.data?.preferences) {
-          setPreferences({
-            notifications: userData.data.data.preferences.notifications ?? true,
-            autoMatch: userData.data.data.preferences.autoMatch ?? false,
-            availability: userData.data.data.preferences.availability ?? 0,
-            mode: userData.data.data.preferences.mode ?? "Online",
-            skillsInterestedInLearning: userData.data.data.preferences.skillsInterestedInLearning ?? [],
-          });
-        }
-      } catch (error) {
-        try {
-          const userData = await axios.get("/user/unregistered/getDetails");
-          if (userData.data.success && userData.data.data?.preferences) {
-            setPreferences({
-              notifications: userData.data.data.preferences.notifications ?? true,
-              autoMatch: userData.data.data.preferences.autoMatch ?? false,
-              availability: userData.data.data.preferences.availability ?? 0,
-              mode: userData.data.data.preferences.mode ?? "Online",
-              skillsInterestedInLearning: userData.data.data.preferences.skillsInterestedInLearning ?? [],
-            });
-          }
-        } catch (err) {
-          // Keep defaults
-        }
-      }
-    };
-    loadPreferences();
-  }, []);
+    // Populate from store if available
+    setPreferences(prev => ({
+      ...prev,
+      ...onboardingData.preferences
+    }));
+  }, [onboardingData.preferences]);
 
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target;
-    if (type === "checkbox") {
-      setPreferences((prev) => ({ ...prev, [name]: checked }));
-    } else {
-      setPreferences((prev) => ({ ...prev, [name]: value }));
-    }
+    setPreferences((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleAddSkill = () => {
     if (newSkill.trim() && !preferences.skillsInterestedInLearning.includes(newSkill.trim())) {
       setPreferences((prev) => ({
         ...prev,
-        skillsInterestedInLearning: [...prev.skillsInterestedInLearning, newSkill.trim()],
+        skillsInterestedInLearning: [...(prev.skillsInterestedInLearning || []), newSkill.trim()],
       }));
       setNewSkill("");
     }
@@ -79,183 +58,195 @@ const Preferences = ({ onComplete }) => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // Validate availability
       if (preferences.availability < 0) {
         toast.error("Availability must be a positive number");
         setLoading(false);
         return;
       }
 
-      // Try registered user endpoint first (most common case)
+      updatePreferences(preferences);
+
+      // Backend sync
       try {
         const { data } = await axios.post("/onboarding/registered/preferences", { preferences });
-        if (data.success) {
-          toast.success("Preferences saved successfully!");
-          if (onComplete) {
-            onComplete();
-          } else {
-            navigate("/");
-          }
-          setLoading(false);
-          return;
+        if (data && data.data && data.data.user) {
+          // Update user context with migrated user data
+          setUser(data.data.user);
+          storeSanitizedUserData(data.data.user);
         }
-      } catch (regError) {
-        // Try unregistered user endpoint
+      } catch (err) {
         try {
           const { data } = await axios.post("/onboarding/preferences", { preferences });
-          if (data.success) {
-            toast.success("Preferences saved successfully!");
-            if (onComplete) {
-              onComplete();
-            } else {
-              navigate("/");
-            }
-            setLoading(false);
-            return;
+          if (data && data.data && data.data.user) {
+            // Update user context with migrated user data
+            setUser(data.data.user);
+            storeSanitizedUserData(data.data.user);
           }
-        } catch (unregError) {
-          const errorMessage = unregError.response?.data?.message || regError.response?.data?.message || "Error saving preferences";
-          toast.error(errorMessage);
+        } catch (inner) {
+          console.warn("Backend sync failed", inner);
         }
       }
+
+      // Mark as complete locally and redirect
+      completeOnboarding();
+      toast.success("All set! Redirecting to feed...");
+      navigate("/feed");
+
     } catch (error) {
-      toast.error(error.response?.data?.message || "Error saving preferences");
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
+
+
   return (
-    <div className="onboarding-container">
-      <div className="onboarding-card">
-        <h2 className="onboarding-title">Onboarding - Step 3: Preferences</h2>
-        <p className="onboarding-subtitle">Customize your experience</p>
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="max-w-xl mx-auto space-y-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-gray-900">Preferences</h2>
+          <p className="mt-2 text-sm text-gray-600">Customize your experience</p>
+        </div>
 
-        <div className="preferences-form">
-          <div className="preference-item">
-            <label className="preference-label">
+        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 space-y-6">
+
+          {/* Toggles */}
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="notifications"
+                  name="notifications"
+                  type="checkbox"
+                  checked={preferences.notifications}
+                  onChange={handleChange}
+                  className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="notifications" className="font-medium text-gray-700">Enable notifications</label>
+                <p className="text-gray-500">Receive updates about new matches and messages.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="autoMatch"
+                  name="autoMatch"
+                  type="checkbox"
+                  checked={preferences.autoMatch}
+                  onChange={handleChange}
+                  className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="autoMatch" className="font-medium text-gray-700">Auto-match tutors</label>
+                <p className="text-gray-500">Automatically suggest tutors for your desired skills.</p>
+              </div>
+            </div>
+          </div>
+
+          <hr className="border-gray-200" />
+
+          {/* Inputs */}
+          <div>
+            <label htmlFor="availability" className="block text-sm font-medium text-gray-700">Availability (Hours per Week)</label>
+            <div className="mt-1">
               <input
-                type="checkbox"
-                name="notifications"
-                checked={preferences.notifications}
+                type="number"
+                id="availability"
+                name="availability"
+                value={preferences.availability}
                 onChange={handleChange}
+                min="0"
+                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                placeholder="e.g. 10"
               />
-              <span>Enable notifications</span>
-            </label>
-            <p className="preference-description">
-              Receive updates about new matches, messages, and activity
-            </p>
+            </div>
           </div>
 
-          <div className="preference-item">
-            <label className="preference-label">
-              <input
-                type="checkbox"
-                name="autoMatch"
-                checked={preferences.autoMatch}
+          <div>
+            <label htmlFor="mode" className="block text-sm font-medium text-gray-700">Preferred Learning Mode</label>
+            <div className="mt-1">
+              <select
+                id="mode"
+                name="mode"
+                value={preferences.mode}
                 onChange={handleChange}
-              />
-              <span>Auto-match tutors</span>
-            </label>
-            <p className="preference-description">
-              Automatically find and suggest tutors for skills you want to learn
-            </p>
+                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+              >
+                <option value="Online">Online</option>
+                <option value="Instant Help">Instant Help</option>
+                <option value="Events">Events</option>
+              </select>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="availability">Availability (Hours per Week)</label>
-            <input
-              type="number"
-              id="availability"
-              name="availability"
-              value={preferences.availability}
-              onChange={handleChange}
-              placeholder="Enter hours per week"
-              min="0"
-              max="168"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="mode">Mode</label>
-            <select
-              id="mode"
-              name="mode"
-              value={preferences.mode}
-              onChange={handleChange}
-              className="form-group select"
-            >
-              <option value="Online">Online</option>
-              <option value="Instant Help">Instant Help</option>
-              <option value="Events">Events</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="skillsLearning">Skills Interested in Learning</label>
-            <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
+          {/* Skills Tag Input */}
+          <div>
+            <label htmlFor="skillsLearning" className="block text-sm font-medium text-gray-700">Additional Interests (Optional)</label>
+            <div className="mt-1 flex gap-2">
               <input
                 type="text"
                 id="skillsLearning"
                 value={newSkill}
                 onChange={(e) => setNewSkill(e.target.value)}
-                placeholder="Enter a skill"
                 onKeyPress={(e) => e.key === "Enter" && handleAddSkill()}
-                style={{ flex: 1 }}
+                placeholder="Type and press Enter, e.g. 'Chess'"
+                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
               />
-              <button type="button" onClick={handleAddSkill} className="btn-add-skill">
+              <button
+                type="button"
+                onClick={handleAddSkill}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
                 Add
               </button>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-              {preferences.skillsInterestedInLearning.map((skill, index) => (
-                <span
-                  key={index}
-                  style={{
-                    background: "#3B82F6",
-                    color: "white",
-                    padding: "0.25rem 0.75rem",
-                    borderRadius: "20px",
-                    fontSize: "0.875rem",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                  }}
-                >
+            <div className="mt-2 flex flex-wrap gap-2">
+              {preferences.skillsInterestedInLearning?.map((skill, index) => (
+                <span key={index} className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                   {skill}
                   <button
                     type="button"
                     onClick={() => handleRemoveSkill(skill)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "white",
-                      cursor: "pointer",
-                      fontSize: "1rem",
-                      padding: 0,
-                      lineHeight: 1,
-                    }}
+                    className="ml-1.5 inline-flex items-center justify-center text-blue-400 hover:text-blue-600 focus:outline-none"
                   >
+                    <span className="sr-only">Remove {skill}</span>
                     ×
                   </button>
                 </span>
               ))}
             </div>
           </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-all"
+          >
+            {loading ? "Finishing..." : "Complete Onboarding"}
+          </button>
         </div>
 
-        <button onClick={handleSubmit} className="btn-primary" disabled={loading}>
-          {loading ? "Saving..." : "Complete Onboarding"}
-        </button>
-
-        <div className="progress-indicator">
-          <div className="progress-bar">
-            <div className="progress-step"></div>
-            <div className="progress-step"></div>
-            <div className="progress-step active"></div>
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Step 3 of 3</span>
+            </div>
           </div>
-          <p className="progress-text">Step 3 of 3</p>
+          <div className="mt-4 flex gap-1 justify-center">
+            <div className="h-1.5 w-16 bg-blue-600 rounded-full"></div>
+            <div className="h-1.5 w-16 bg-blue-600 rounded-full"></div>
+            <div className="h-1.5 w-16 bg-blue-600 rounded-full"></div>
+          </div>
         </div>
+
       </div>
     </div>
   );

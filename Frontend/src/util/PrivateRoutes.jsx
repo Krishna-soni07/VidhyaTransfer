@@ -2,6 +2,7 @@ import { Outlet, Navigate } from "react-router-dom";
 import { useUser } from "./UserContext";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { storeSanitizedUserData } from "./sanitizeUserData";
 
 const PrivateRoutes = () => {
   const { user } = useUser();
@@ -11,7 +12,7 @@ const PrivateRoutes = () => {
   useEffect(() => {
     const checkAuth = async () => {
       const userInfo = localStorage.getItem("userInfo");
-      
+
       // If user is in context or localStorage, allow access
       if (user || userInfo) {
         setIsAuthenticated(true);
@@ -24,7 +25,7 @@ const PrivateRoutes = () => {
         try {
           const { data } = await axios.get("/user/registered/getDetails");
           if (data.success && data.data) {
-            localStorage.setItem("userInfo", JSON.stringify(data.data));
+            storeSanitizedUserData(data.data);
             setIsAuthenticated(true);
             setChecking(false);
             return;
@@ -33,7 +34,7 @@ const PrivateRoutes = () => {
           try {
             const { data } = await axios.get("/user/unregistered/getDetails");
             if (data.success && data.data) {
-              localStorage.setItem("userInfo", JSON.stringify(data.data));
+              storeSanitizedUserData(data.data);
               setIsAuthenticated(true);
               setChecking(false);
               return;
@@ -55,10 +56,10 @@ const PrivateRoutes = () => {
 
   if (checking) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         background: 'var(--grey)'
       }}>
@@ -70,7 +71,7 @@ const PrivateRoutes = () => {
   if (isAuthenticated) {
     return <Outlet />;
   }
-  
+
   return <Navigate to="/login" replace />;
 };
 

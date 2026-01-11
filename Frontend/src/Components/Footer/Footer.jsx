@@ -2,66 +2,18 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <>
-      <style>{`
-        .footer-link:hover {
-          color: #6B7280 !important;
-        }
-        @media (max-width: 768px) {
-          .footer-container {
-            flex-direction: column;
-            gap: 16px;
-            text-align: center;
-          }
-        }
-      `}</style>
-      <footer style={styles.footer}>
-        <div style={styles.container} className="footer-container">
-          <div style={styles.copyright}>
-            © 2025 SkillSwap. All rights reserved.
-          </div>
-          <div style={styles.links}>
-            <a href="#" className="footer-link" style={styles.link}>Privacy Policy</a>
-            <a href="#" className="footer-link" style={styles.link}>Terms of Service</a>
-          </div>
+    <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-auto">
+      <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
+        <div className="text-sm text-gray-400 font-sans text-center md:text-left">
+          © 2025 SkillSwap. All rights reserved.
         </div>
-      </footer>
-    </>
+        <div className="flex gap-6">
+          <a href="#" className="text-sm text-gray-400 no-underline transition-colors duration-200 hover:text-gray-500 font-sans">Privacy Policy</a>
+          <a href="#" className="text-sm text-gray-400 no-underline transition-colors duration-200 hover:text-gray-500 font-sans">Terms of Service</a>
+        </div>
+      </div>
+    </footer>
   );
 };
-
-const styles = {
-  footer: {
-    background: '#F9FAFB',
-    borderTop: '1px solid #E5E7EB',
-    padding: '32px 0',
-    marginTop: 'auto',
-  },
-  container: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '0 24px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  copyright: {
-    fontSize: '0.875rem',
-    color: '#9CA3AF',
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-  links: {
-    display: 'flex',
-    gap: '24px',
-  },
-  link: {
-    fontSize: '0.875rem',
-    color: '#9CA3AF',
-    textDecoration: 'none',
-    transition: 'color 0.2s ease',
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-};
-
 
 export default Footer;

@@ -14,7 +14,6 @@ const LandingPage = () => {
   };
 
   const handleExploreSkills = () => {
-    // Scroll to features section
     const element = document.getElementById('features');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -22,74 +21,74 @@ const LandingPage = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 font-sans">
       {/* Hero Section */}
-      <div style={styles.heroSection}>
-        <div style={styles.heroContent}>
-          <div style={styles.heroLeft}>
-            <h1 style={styles.mainTitle}>
+      <div className="pt-20 px-6 pb-16 max-w-[1400px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="flex flex-col gap-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-br from-blue-500 to-green-500 bg-clip-text text-transparent leading-[1.2] m-0 tracking-tight">
               Learn & Share Skills with Your Community
             </h1>
-            <p style={styles.heroDescription}>
+            <p className="text-lg text-gray-500 leading-relaxed m-0 max-w-[600px]">
               Exchange knowledge, earn credits, and grow together. Connect with learners and experts in a collaborative platform designed for everyone.
             </p>
-            <div style={styles.buttonGroup}>
-              <button 
+            <div className="flex gap-4 mt-2">
+              <button
                 onClick={handleStartLearning}
-                style={styles.primaryButton}
+                className="px-8 py-3.5 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 shadow-lg hover:-translate-y-0.5 hover:shadow-blue-500/40 border-none"
               >
                 Start Learning
               </button>
-              <button 
+              <button
                 onClick={handleExploreSkills}
-                style={styles.secondaryButton}
+                className="px-8 py-3.5 bg-white text-blue-500 border-2 border-blue-500 rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 Explore Skills
               </button>
             </div>
-            <div style={styles.statsBar}>
-              <div style={styles.statItem}>
-                <div style={styles.statIcon}>
-                  <FaUsers style={{ fontSize: '24px', color: '#F59E0B' }} />
+            <div className="flex gap-10 mt-2">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <FaUsers className="text-2xl text-amber-500" />
                 </div>
-                <span style={styles.statText}>10,000+ Active Members</span>
+                <span className="text-base font-semibold text-gray-800">10,000+ Active Members</span>
               </div>
-              <div style={styles.statItem}>
-                <div style={styles.statIcon}>
-                  <FaBook style={{ fontSize: '24px', color: '#F59E0B' }} />
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <FaBook className="text-2xl text-amber-500" />
                 </div>
-                <span style={styles.statText}>500+ Skills Available</span>
+                <span className="text-base font-semibold text-gray-800">500+ Skills Available</span>
               </div>
             </div>
           </div>
-          <div style={styles.heroRight}>
-            <div style={styles.floatingCard}>
-              <div style={styles.cardHeader}>
+          <div className="flex justify-center items-start">
+            <div className="bg-white rounded-[20px] p-8 shadow-2xl w-full max-w-[400px] border border-gray-200">
+              <div className="flex justify-between items-start mb-4">
                 <div>
-                  <div style={styles.cardName}>Sarah Johnson</div>
-                  <div style={styles.cardRole}>Graphic Designer</div>
+                  <div className="text-xl font-bold text-gray-800 mb-1">Sarah Johnson</div>
+                  <div className="text-sm text-gray-500">Graphic Designer</div>
                 </div>
-                <div style={styles.activeBadge}>Active</div>
+                <div className="px-3 py-1.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold">Active</div>
               </div>
-              <div style={styles.cardStatus}>Teaching Now</div>
-              <div style={styles.cardSkill}>Advanced Photoshop Techniques</div>
-              <div style={styles.cardDetails}>
-                <div style={styles.cardDetailItem}>
-                  <FaClock style={{ fontSize: '16px', color: '#6B7280' }} />
-                  <span style={styles.cardDetailText}>45 min session</span>
+              <div className="text-sm text-gray-500 mb-2">Teaching Now</div>
+              <div className="text-lg font-semibold text-gray-800 mb-5">Advanced Photoshop Techniques</div>
+              <div className="flex gap-6 mb-6 pb-6 border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <FaClock className="text-base text-gray-500" />
+                  <span className="text-sm text-gray-500">45 min session</span>
                 </div>
-                <div style={styles.cardDetailItem}>
-                  <FaCoins style={{ fontSize: '16px', color: '#6B7280' }} />
-                  <span style={styles.cardDetailText}>+50 Credits</span>
+                <div className="flex items-center gap-2">
+                  <FaCoins className="text-base text-gray-500" />
+                  <span className="text-sm text-gray-500">+50 Credits</span>
                 </div>
               </div>
-              <div style={styles.cardRating}>
-                <div style={styles.ratingNumber}>4.9</div>
-                <div style={styles.ratingStars}>
-                  <FaStar style={{ fontSize: '20px', color: '#F59E0B' }} />
+              <div className="flex items-center gap-3">
+                <div className="text-3xl font-extrabold text-gray-800">4.9</div>
+                <div className="flex gap-0.5">
+                  <FaStar className="text-xl text-amber-500" />
                 </div>
-                <div style={styles.ratingText}>Avg Rating</div>
-                <div style={styles.ratingStudents}>120 students enrolled</div>
+                <div className="text-sm text-gray-500 ml-2">Avg Rating</div>
+                <div className="text-xs text-gray-400 ml-auto">120 students enrolled</div>
               </div>
             </div>
           </div>
@@ -97,36 +96,36 @@ const LandingPage = () => {
       </div>
 
       {/* Features Section */}
-      <div id="features" style={styles.howItWorksSection}>
-        <h2 style={styles.sectionTitle}>Features</h2>
-        <p style={styles.sectionSubtitle}>
+      <div id="features" className="py-20 px-6 bg-white max-w-[1400px] mx-auto">
+        <h2 className="text-3xl md:text-5xl font-extrabold text-gray-800 text-center mb-4">Features</h2>
+        <p className="text-lg text-gray-500 text-center max-w-[700px] mx-auto mb-16 leading-relaxed">
           Discover what makes SkillSwap the perfect platform for skill exchange and learning.
         </p>
-        <div style={styles.featuresGrid}>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>
-              <FaUsers style={{ fontSize: '48px', color: '#3B82F6' }} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-[1200px] mx-auto">
+          <div className="bg-white rounded-[20px] p-10 px-8 border border-gray-200 text-center transition-all duration-300 shadow-sm hover:-translate-y-1 hover:shadow-xl">
+            <div className="w-20 h-20 rounded-[20px] bg-gray-100 flex items-center justify-center mx-auto mb-6">
+              <FaUsers className="text-5xl text-blue-500" />
             </div>
-            <h3 style={styles.featureTitle}>Connect with Experts</h3>
-            <p style={styles.featureDescription}>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">Connect with Experts</h3>
+            <p className="text-base text-gray-500 leading-relaxed m-0">
               Find and connect with skilled professionals who are ready to share their expertise with you.
             </p>
           </div>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>
-              <FaCoins style={{ fontSize: '48px', color: '#F59E0B' }} />
+          <div className="bg-white rounded-[20px] p-10 px-8 border border-gray-200 text-center transition-all duration-300 shadow-sm hover:-translate-y-1 hover:shadow-xl">
+            <div className="w-20 h-20 rounded-[20px] bg-gray-100 flex items-center justify-center mx-auto mb-6">
+              <FaCoins className="text-5xl text-amber-500" />
             </div>
-            <h3 style={styles.featureTitle}>Credit System</h3>
-            <p style={styles.featureDescription}>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">Credit System</h3>
+            <p className="text-base text-gray-500 leading-relaxed m-0">
               Earn credits by teaching and use them to learn new skills from others in the community.
             </p>
           </div>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>
-              <FaBook style={{ fontSize: '48px', color: '#10B981' }} />
+          <div className="bg-white rounded-[20px] p-10 px-8 border border-gray-200 text-center transition-all duration-300 shadow-sm hover:-translate-y-1 hover:shadow-xl">
+            <div className="w-20 h-20 rounded-[20px] bg-gray-100 flex items-center justify-center mx-auto mb-6">
+              <FaBook className="text-5xl text-emerald-500" />
             </div>
-            <h3 style={styles.featureTitle}>Diverse Skills</h3>
-            <p style={styles.featureDescription}>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">Diverse Skills</h3>
+            <p className="text-base text-gray-500 leading-relaxed m-0">
               Access hundreds of skills across various domains, from technical to creative.
             </p>
           </div>
@@ -134,36 +133,36 @@ const LandingPage = () => {
       </div>
 
       {/* How SkillSwap Works Section */}
-      <div id="how-it-works" style={styles.howItWorksSection}>
-        <h2 style={styles.sectionTitle}>How SkillSwap Works</h2>
-        <p style={styles.sectionSubtitle}>
+      <div id="how-it-works" className="py-20 px-6 bg-white max-w-[1400px] mx-auto">
+        <h2 className="text-3xl md:text-5xl font-extrabold text-gray-800 text-center mb-4">How SkillSwap Works</h2>
+        <p className="text-lg text-gray-500 text-center max-w-[700px] mx-auto mb-16 leading-relaxed">
           A simple, credit-based system that makes learning and teaching accessible to everyone.
         </p>
-        <div style={styles.featuresGrid}>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>
-              <FaUsers style={{ fontSize: '48px', color: '#3B82F6' }} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-[1200px] mx-auto">
+          <div className="bg-white rounded-[20px] p-10 px-8 border border-gray-200 text-center transition-all duration-300 shadow-sm hover:-translate-y-1 hover:shadow-xl">
+            <div className="w-20 h-20 rounded-[20px] bg-gray-100 flex items-center justify-center mx-auto mb-6">
+              <FaUsers className="text-5xl text-blue-500" />
             </div>
-            <h3 style={styles.featureTitle}>Create Your Profile</h3>
-            <p style={styles.featureDescription}>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">Create Your Profile</h3>
+            <p className="text-base text-gray-500 leading-relaxed m-0">
               Set up your profile, showcase your skills, and let others know what you can teach or want to learn.
             </p>
           </div>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>
-              <FaCoins style={{ fontSize: '48px', color: '#F59E0B' }} />
+          <div className="bg-white rounded-[20px] p-10 px-8 border border-gray-200 text-center transition-all duration-300 shadow-sm hover:-translate-y-1 hover:shadow-xl">
+            <div className="w-20 h-20 rounded-[20px] bg-gray-100 flex items-center justify-center mx-auto mb-6">
+              <FaCoins className="text-5xl text-amber-500" />
             </div>
-            <h3 style={styles.featureTitle}>Earn Credits</h3>
-            <p style={styles.featureDescription}>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">Earn Credits</h3>
+            <p className="text-base text-gray-500 leading-relaxed m-0">
               Teach others and earn credits that you can use to learn new skills from experts in your community.
             </p>
           </div>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>
-              <FaBook style={{ fontSize: '48px', color: '#10B981' }} />
+          <div className="bg-white rounded-[20px] p-10 px-8 border border-gray-200 text-center transition-all duration-300 shadow-sm hover:-translate-y-1 hover:shadow-xl">
+            <div className="w-20 h-20 rounded-[20px] bg-gray-100 flex items-center justify-center mx-auto mb-6">
+              <FaBook className="text-5xl text-emerald-500" />
             </div>
-            <h3 style={styles.featureTitle}>Learn & Grow</h3>
-            <p style={styles.featureDescription}>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">Learn & Grow</h3>
+            <p className="text-base text-gray-500 leading-relaxed m-0">
               Connect with mentors, attend sessions, and continuously expand your knowledge base.
             </p>
           </div>
@@ -172,261 +171,5 @@ const LandingPage = () => {
     </div>
   );
 };
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #F9FAFB 0%, #E5E7EB 100%)',
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-  heroSection: {
-    padding: '80px 24px 60px',
-    maxWidth: '1400px',
-    margin: '0 auto',
-  },
-  heroContent: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '60px',
-    alignItems: 'center',
-  },
-  heroLeft: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  mainTitle: {
-    fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-    fontWeight: '800',
-    background: 'linear-gradient(135deg, #3B82F6 0%, #10B981 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    lineHeight: '1.2',
-    margin: 0,
-    letterSpacing: '-1px',
-  },
-  heroDescription: {
-    fontSize: '1.125rem',
-    color: '#6B7280',
-    lineHeight: '1.7',
-    margin: 0,
-    maxWidth: '600px',
-  },
-  buttonGroup: {
-    display: 'flex',
-    gap: '16px',
-    marginTop: '8px',
-  },
-  primaryButton: {
-    padding: '14px 32px',
-    background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '1rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-  },
-  secondaryButton: {
-    padding: '14px 32px',
-    background: 'white',
-    color: '#3B82F6',
-    border: '2px solid #3B82F6',
-    borderRadius: '12px',
-    fontSize: '1rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-  },
-  statsBar: {
-    display: 'flex',
-    gap: '40px',
-    marginTop: '8px',
-  },
-  statItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  statIcon: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '12px',
-    background: '#FEF3C7',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statText: {
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  heroRight: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  floatingCard: {
-    background: 'white',
-    borderRadius: '20px',
-    padding: '32px',
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-    width: '100%',
-    maxWidth: '400px',
-    border: '1px solid #E5E7EB',
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '16px',
-  },
-  cardName: {
-    fontSize: '1.25rem',
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: '4px',
-  },
-  cardRole: {
-    fontSize: '0.875rem',
-    color: '#6B7280',
-  },
-  activeBadge: {
-    padding: '6px 12px',
-    background: '#D1FAE5',
-    color: '#065F46',
-    borderRadius: '20px',
-    fontSize: '0.75rem',
-    fontWeight: '600',
-  },
-  cardStatus: {
-    fontSize: '0.875rem',
-    color: '#6B7280',
-    marginBottom: '8px',
-  },
-  cardSkill: {
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: '20px',
-  },
-  cardDetails: {
-    display: 'flex',
-    gap: '24px',
-    marginBottom: '24px',
-    paddingBottom: '24px',
-    borderBottom: '1px solid #E5E7EB',
-  },
-  cardDetailItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  cardDetailText: {
-    fontSize: '0.875rem',
-    color: '#6B7280',
-  },
-  cardRating: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  ratingNumber: {
-    fontSize: '2rem',
-    fontWeight: '800',
-    color: '#1F2937',
-  },
-  ratingStars: {
-    display: 'flex',
-    gap: '2px',
-  },
-  ratingText: {
-    fontSize: '0.875rem',
-    color: '#6B7280',
-    marginLeft: '8px',
-  },
-  ratingStudents: {
-    fontSize: '0.75rem',
-    color: '#9CA3AF',
-    marginLeft: 'auto',
-  },
-  howItWorksSection: {
-    padding: '80px 24px',
-    background: 'white',
-    maxWidth: '1400px',
-    margin: '0 auto',
-  },
-  sectionTitle: {
-    fontSize: 'clamp(2rem, 4vw, 3rem)',
-    fontWeight: '800',
-    color: '#1F2937',
-    textAlign: 'center',
-    marginBottom: '16px',
-  },
-  sectionSubtitle: {
-    fontSize: '1.125rem',
-    color: '#6B7280',
-    textAlign: 'center',
-    maxWidth: '700px',
-    margin: '0 auto 60px',
-    lineHeight: '1.7',
-  },
-  featuresGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '32px',
-    maxWidth: '1200px',
-    margin: '0 auto',
-  },
-  featureCard: {
-    background: 'white',
-    borderRadius: '20px',
-    padding: '40px 32px',
-    border: '1px solid #E5E7EB',
-    textAlign: 'center',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-  },
-  featureIcon: {
-    width: '80px',
-    height: '80px',
-    borderRadius: '20px',
-    background: '#F3F4F6',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: '0 auto 24px',
-  },
-  featureTitle: {
-    fontSize: '1.5rem',
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: '12px',
-  },
-  featureDescription: {
-    fontSize: '1rem',
-    color: '#6B7280',
-    lineHeight: '1.7',
-    margin: 0,
-  },
-};
-
-// Add hover effects
-const styleSheet = document.createElement('style');
-styleSheet.textContent = `
-  button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
-  }
-  .feature-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
-  }
-`;
-document.head.appendChild(styleSheet);
 
 export default LandingPage;
