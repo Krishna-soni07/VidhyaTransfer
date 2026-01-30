@@ -9,7 +9,9 @@ import {
   forgotPassword,
   resetPassword,
   sendRegistrationOtp,
-  verifyRegistrationOtp
+  verifyRegistrationOtp,
+  sendLoginOtp,
+  loginWithOtp
 } from "../controllers/auth/auth.controllers.js";
 
 const router = Router();
@@ -25,6 +27,10 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.post("/send-registration-otp", sendRegistrationOtp);
 router.post("/verify-registration-otp", verifyRegistrationOtp);
+
+// Login OTP Routes
+router.post("/send-otp", sendLoginOtp);
+router.post("/login-with-otp", loginWithOtp);
 
 // Logout
 router.get("/logout", handleLogout);

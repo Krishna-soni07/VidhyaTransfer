@@ -7,7 +7,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5174"],
     credentials: true,
   })
 );
@@ -39,6 +39,7 @@ import onboardingRouter from "./routes/onboarding.routes.js";
 import skillRouter from "./routes/skill.routes.js";
 import postRouter from "./routes/post.routes.js";
 import paymentRouter from "./routes/payment.routes.js";
+import adminRouter from "./routes/admin.routes.js";
 
 // Using routes
 app.use("/user", userRouter);
@@ -52,5 +53,6 @@ app.use("/onboarding", onboardingRouter);
 app.use("/skill", skillRouter);
 app.use("/post", postRouter);
 app.use("/payment", paymentRouter);
+app.use("/admin", adminRouter);
 
 export { app };

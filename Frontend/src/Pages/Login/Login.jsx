@@ -81,6 +81,23 @@ const Login = () => {
     window.location.href = `${axios.defaults.baseURL}/auth/google`;
   };
 
+  const handleSendOtp = async () => {
+    if (!email) { toast.error("Please enter email"); return; }
+    setLoading(true);
+    try {
+      const { data } = await axios.post("/auth/send-otp", { email });
+      if (data.success) {
+        setOtpSent(true);
+        setOtpTimer(60);
+        toast.success(data.message);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -88,7 +105,19 @@ const Login = () => {
     try {
       if (activeTab === "login") {
         // Login logic
-        const { data } = await axios.post("/auth/login", { email, password });
+        let response;
+        if (loginMethod === "otp") {
+          if (!otpSent) {
+            await handleSendOtp();
+            return;
+          }
+          if (!otp) { toast.error("Please enter OTP"); setLoading(false); return; }
+          response = await axios.post("/auth/login-with-otp", { email, otp });
+        } else {
+          response = await axios.post("/auth/login", { email, password });
+        }
+
+        const { data } = response;
 
         if (data.success) {
           toast.success(data.message || "Login successful");
@@ -311,7 +340,7 @@ const Login = () => {
                 />
               </div>
 
-              {loginMethod === "password" && (
+              {(loginMethod === "password" || activeTab === "register") && (
                 <div className="flex flex-col gap-2 relative">
                   <label className="text-sm font-semibold text-gray-700">Password</label>
                   <div className="relative">
@@ -398,7 +427,7 @@ const Login = () => {
               {activeTab === "login" && loginMethod === "otp" && !otpSent ? (
                 <Button
                   type="button"
-                  onClick={() => axios.post("/auth/send-otp", { email }).then(res => { if (res.data.success) { setOtpSent(true); setOtpTimer(60); toast.success(res.data.message); } }).catch(err => toast.error(err.response?.data?.message || "Failed"))}
+                  onClick={handleSendOtp}
                   className="w-full p-3.5 bg-blue-500 text-white border-0 rounded-xl text-base font-semibold cursor-pointer transition-all duration-200 mt-2 hover:bg-blue-600 hover:-translate-y-0.5 hover:shadow-lg shadow-blue-500/30 disabled:opacity-70 disabled:cursor-not-allowed"
                   disabled={loading}
                 >

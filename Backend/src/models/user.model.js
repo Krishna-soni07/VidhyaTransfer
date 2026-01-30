@@ -16,6 +16,11 @@ const userSchema = new Schema(
       required: true,
       unique: true,
     },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
     password: {
       type: String,
       default: null, // null for Google OAuth users
@@ -191,6 +196,14 @@ const userSchema = new Schema(
       default: null,
     },
     resetPasswordExpires: {
+      type: Date,
+      default: null,
+    },
+    otp: {
+      type: String,
+      default: null,
+    },
+    otpExpires: {
       type: Date,
       default: null,
     },

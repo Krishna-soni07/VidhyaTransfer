@@ -129,8 +129,8 @@ export const loginWithEmailPassword = asyncHandler(async (req, res) => {
     if (verifyPassword(password, registeredUser.password)) {
       const jwtToken = generateJWTToken_username(registeredUser);
       const expiryDate = new Date(Date.now() + 1 * 60 * 60 * 1000);
-      res.cookie("accessToken", jwtToken, { httpOnly: true, expires: expiryDate, secure: false });
-      res.cookie("hasSession", "true", { expires: expiryDate, secure: false, httpOnly: false });
+      res.cookie("accessToken", jwtToken, { httpOnly: true, expires: expiryDate, secure: false, sameSite: "Lax", path: "/" });
+      res.cookie("hasSession", "true", { expires: expiryDate, secure: false, httpOnly: false, sameSite: "Lax", path: "/" });
       // Return user data without password
       const userData = { ...registeredUser.toObject() };
       delete userData.password;
@@ -145,6 +145,11 @@ export const loginWithEmailPassword = asyncHandler(async (req, res) => {
   // Check if unregistered user exists
   const unregisteredUser = await UnRegisteredUser.findOne({ email });
   if (unregisteredUser && unregisteredUser.password) {
+    // Prevent bypass of email verification
+    if (unregisteredUser.otp) {
+      throw new ApiError(403, "Please complete email verification first");
+    }
+
     // Verify password
     if (verifyPassword(password, unregisteredUser.password)) {
       const jwtToken = generateJWTToken_email(unregisteredUser);
@@ -325,5 +330,61 @@ export const verifyRegistrationOtp = asyncHandler(async (req, res) => {
 
   return res.status(201).json(
     new ApiResponse(201, { user: userData }, "Registration successful")
+  );
+});
+
+export const sendLoginOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) throw new ApiError(400, "Email is required");
+
+  let user = await User.findOne({ email });
+  // If not found in User, check UnRegisteredUser? Usually login is for registered.
+  // Assuming Login for Registered.
+  if (!user) throw new ApiError(404, "User not found");
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  user.otp = otp;
+  user.otpExpires = Date.now() + 10 * 60 * 1000;
+  await user.save();
+
+  try {
+    await sendMail(email, "Login OTP - SkillSwap", `Your login OTP is ${otp}`);
+    return res.status(200).json(new ApiResponse(200, null, "OTP sent successfully"));
+  } catch (err) {
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+    throw new ApiError(500, "Failed to send OTP");
+  }
+});
+
+export const loginWithOtp = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) throw new ApiError(400, "Email and OTP are required");
+
+  const user = await User.findOne({
+    email,
+    otp,
+    otpExpires: { $gt: Date.now() }
+  });
+
+  if (!user) throw new ApiError(400, "Invalid or expired OTP");
+
+  // Login Success
+  const jwtToken = generateJWTToken_username(user);
+  const expiryDate = new Date(Date.now() + 1 * 60 * 60 * 1000);
+  res.cookie("accessToken", jwtToken, { httpOnly: true, expires: expiryDate, secure: false, sameSite: "Lax", path: "/" });
+  res.cookie("hasSession", "true", { expires: expiryDate, secure: false, httpOnly: false, sameSite: "Lax", path: "/" });
+
+  user.otp = undefined;
+  user.otpExpires = undefined;
+  await user.save();
+
+  const userData = { ...user.toObject() };
+  delete userData.password;
+  delete userData.otp;
+
+  return res.status(200).json(
+    new ApiResponse(200, { user: userData }, "Login successful")
   );
 });
