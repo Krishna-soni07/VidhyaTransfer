@@ -92,11 +92,15 @@ const Navbar = () => {
     { path: '#how-it-works', label: 'How It Works', isAnchor: true }
   ];
 
+  if (location.pathname.startsWith("/onboarding")) {
+    return null;
+  }
+
   return (
     <nav className="bg-white border-b border-gray-200 py-3 sticky top-0 z-40 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
       <div className="max-w-[1400px] mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3 no-underline cursor-pointer group">
+        <Link to={user ? "/feed" : "/"} className="flex items-center gap-3 no-underline cursor-pointer group">
           <div className="w-10 h-10 rounded-[10px] bg-blue-50 flex items-center justify-center">
             <FaGraduationCap className="text-[28px] text-blue-500" />
           </div>

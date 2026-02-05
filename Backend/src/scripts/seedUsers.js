@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import { User } from "../models/user.model.js";
 
 // Load env vars
@@ -27,10 +27,8 @@ const connectDB = async () => {
     }
 };
 
-function hashPassword(password) {
-    const salt = crypto.randomBytes(16).toString("hex");
-    const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, "sha512").toString("hex");
-    return `${salt}:${hash}`;
+async function hashPassword(password) {
+    return await bcrypt.hash(password, 10);
 }
 
 const skillsList = ["React", "Node.js", "Python", "Java", "C++", "MongoDB", "SQL", "AWS", "Docker", "Figma", "UI/UX", "Machine Learning", "Data Science", "Marketing", "SEO", "Content Writing", "Public Speaking"];
@@ -48,6 +46,7 @@ const seedUsers = async () => {
         await User.deleteMany({ email: { $regex: /^user\d+@gmail\.com$/ } });
 
         const users = [];
+        const hashedPassword = await hashPassword("admin123");
 
         for (let i = 1; i <= 50; i++) {
             const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
@@ -64,7 +63,7 @@ const seedUsers = async () => {
                 name: fullName,
                 username: userName,
                 email: `user${i}@gmail.com`,
-                password: hashPassword("admin123"),
+                password: hashedPassword,
                 skillsProficientAt: [
                     { name: randomSkill1, proficiency: "Intermediate", category: "Programming" },
                     { name: randomSkill2, proficiency: "Beginner", category: "Programming" }

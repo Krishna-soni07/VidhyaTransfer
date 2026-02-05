@@ -11,7 +11,8 @@ import {
   sendRegistrationOtp,
   verifyRegistrationOtp,
   sendLoginOtp,
-  loginWithOtp
+  loginWithOtp,
+  loginAdmin
 } from "../controllers/auth/auth.controllers.js";
 
 const router = Router();
@@ -19,6 +20,9 @@ const router = Router();
 // Google OAuth routes
 router.get("/google", googleAuthHandler);
 router.get("/google/callback", googleAuthCallback, handleGoogleLoginCallback);
+
+// Admin Login
+router.post("/admin/login", loginAdmin);
 
 // Email/Password routes
 router.post("/register", registerWithEmailPassword);

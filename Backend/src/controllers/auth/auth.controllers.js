@@ -8,6 +8,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import { sendMail } from "../../utils/SendMail.js";
 
 dotenv.config();
@@ -91,11 +92,11 @@ export const registerWithEmailPassword = asyncHandler(async (req, res) => {
     unregisteredUser = await UnRegisteredUser.create({
       name,
       email,
-      password: hashPassword(password),
+      password: await hashPassword(password),
     });
   } else {
     // Update password if unregistered user exists
-    unregisteredUser.password = hashPassword(password);
+    unregisteredUser.password = await hashPassword(password);
     await unregisteredUser.save();
   }
 
@@ -114,7 +115,7 @@ export const registerWithEmailPassword = asyncHandler(async (req, res) => {
   );
 });
 
-// Email/Password Login
+// Email/Password Login (For Users)
 export const loginWithEmailPassword = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -125,8 +126,25 @@ export const loginWithEmailPassword = asyncHandler(async (req, res) => {
   // Check if user exists (registered)
   const registeredUser = await User.findOne({ email });
   if (registeredUser && registeredUser.password) {
+    // BLOCK ADMINS FROM USER LOGIN
+    if (registeredUser.role === 'admin') {
+      throw new ApiError(403, "Admins must use the Admin PortaL");
+    }
+
+    if (registeredUser.status === 'banned') throw new ApiError(403, "Account suspended");
+    if (registeredUser.isDeleted) throw new ApiError(403, "Account deleted");
+
+    if (registeredUser.lockUntil && registeredUser.lockUntil > Date.now()) {
+      throw new ApiError(429, `Account locked. Try again after ${new Date(registeredUser.lockUntil).toLocaleTimeString()}`);
+    }
+
     // Verify password
-    if (verifyPassword(password, registeredUser.password)) {
+    if (await verifyPassword(password, registeredUser.password)) {
+      registeredUser.loginAttempts = 0;
+      registeredUser.lockUntil = undefined;
+      registeredUser.lastLogin = Date.now();
+      await registeredUser.save();
+
       const jwtToken = generateJWTToken_username(registeredUser);
       const expiryDate = new Date(Date.now() + 1 * 60 * 60 * 1000);
       res.cookie("accessToken", jwtToken, { httpOnly: true, expires: expiryDate, secure: false, sameSite: "Lax", path: "/" });
@@ -138,6 +156,11 @@ export const loginWithEmailPassword = asyncHandler(async (req, res) => {
         new ApiResponse(200, { user: userData }, "Login successful")
       );
     } else {
+      registeredUser.loginAttempts = (registeredUser.loginAttempts || 0) + 1;
+      if (registeredUser.loginAttempts >= 5) {
+        registeredUser.lockUntil = Date.now() + 15 * 60 * 1000; // 15 min lock
+      }
+      await registeredUser.save();
       throw new ApiError(401, "Invalid email or password");
     }
   }
@@ -151,11 +174,11 @@ export const loginWithEmailPassword = asyncHandler(async (req, res) => {
     }
 
     // Verify password
-    if (verifyPassword(password, unregisteredUser.password)) {
+    if (await verifyPassword(password, unregisteredUser.password)) {
       const jwtToken = generateJWTToken_email(unregisteredUser);
       const expiryDate = new Date(Date.now() + 1 * 60 * 60 * 1000);
-      res.cookie("accessTokenRegistration", jwtToken, { httpOnly: true, expires: expiryDate, secure: false });
-      res.cookie("hasSession", "true", { expires: expiryDate, secure: false, httpOnly: false });
+      res.cookie("accessTokenRegistration", jwtToken, { httpOnly: true, expires: expiryDate, secure: false, sameSite: "Lax", path: "/" });
+      res.cookie("hasSession", "true", { expires: expiryDate, secure: false, httpOnly: false, sameSite: "Lax", path: "/" });
       // Return user data without password
       const userData = { ...unregisteredUser.toObject() };
       delete userData.password;
@@ -170,19 +193,63 @@ export const loginWithEmailPassword = asyncHandler(async (req, res) => {
   throw new ApiError(401, "Invalid email or password");
 });
 
-// Helper function to hash password using crypto (built-in Node.js module)
-function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString("hex");
-  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, "sha512").toString("hex");
-  return `${salt}:${hash}`;
+// Admin Login (Exclusive)
+export const loginAdmin = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    throw new ApiError(400, "Email and password are required");
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user || !user.password) {
+    throw new ApiError(401, "Invalid admin credentials");
+  }
+
+  if (user.role !== 'admin') {
+    throw new ApiError(403, "Access denied. Not an admin.");
+  }
+
+  if (await verifyPassword(password, user.password)) {
+    user.lastLogin = Date.now();
+    await user.save();
+
+    const jwtToken = generateJWTToken_username(user);
+    const expiryDate = new Date(Date.now() + 1 * 60 * 60 * 1000);
+
+    // Cookie settings might need to be specific for admin if needed, but standard is fine
+    res.cookie("accessToken", jwtToken, { httpOnly: true, expires: expiryDate, secure: false, sameSite: "Lax", path: "/" });
+
+    const userData = { ...user.toObject() };
+    delete userData.password;
+
+    return res.status(200).json(
+      new ApiResponse(200, { user: userData }, "Admin Login successful")
+    );
+  } else {
+    throw new ApiError(401, "Invalid admin credentials");
+  }
+});
+
+// Helper function to hash password (async)
+async function hashPassword(password) {
+  return await bcrypt.hash(password, 10);
 }
 
-// Helper function to verify password
-function verifyPassword(password, hashedPassword) {
+// Helper function to verify password (async, supports legacy pbkdf2)
+async function verifyPassword(password, hashedPassword) {
   if (!hashedPassword) return false;
-  const [salt, hash] = hashedPassword.split(":");
-  const verifyHash = crypto.pbkdf2Sync(password, salt, 10000, 64, "sha512").toString("hex");
-  return hash === verifyHash;
+
+  // Legacy Check (PBKDF2)
+  if (hashedPassword.includes(":")) {
+    const [salt, hash] = hashedPassword.split(":");
+    const verifyHash = crypto.pbkdf2Sync(password, salt, 10000, 64, "sha512").toString("hex");
+    return hash === verifyHash;
+  }
+
+  // Modern Check (Bcrypt)
+  return await bcrypt.compare(password, hashedPassword);
 }
 
 
@@ -236,7 +303,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   if (!user) throw new ApiError(400, "Invalid or expired token");
 
-  user.password = hashPassword(newPassword);
+  user.password = await hashPassword(newPassword);
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
 
@@ -266,14 +333,14 @@ export const sendRegistrationOtp = asyncHandler(async (req, res) => {
     unregisteredUser = await UnRegisteredUser.create({
       name,
       email,
-      password: hashPassword(password),
+      password: await hashPassword(password),
       otp,
       otpExpires
     });
   } else {
     // Update existing unregistered user
     unregisteredUser.name = name;
-    unregisteredUser.password = hashPassword(password);
+    unregisteredUser.password = await hashPassword(password);
     unregisteredUser.otp = otp;
     unregisteredUser.otpExpires = otpExpires;
     await unregisteredUser.save();
@@ -343,7 +410,7 @@ export const sendLoginOtp = asyncHandler(async (req, res) => {
   if (!user) throw new ApiError(404, "User not found");
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  user.otp = otp;
+  user.otp = await bcrypt.hash(otp, 10);
   user.otpExpires = Date.now() + 10 * 60 * 1000;
   await user.save();
 
@@ -364,11 +431,18 @@ export const loginWithOtp = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({
     email,
-    otp,
     otpExpires: { $gt: Date.now() }
   });
 
-  if (!user) throw new ApiError(400, "Invalid or expired OTP");
+  if (!user || !user.otp) throw new ApiError(400, "Invalid or expired OTP");
+
+  if (user.role === 'admin') {
+    throw new ApiError(403, "Admins must use the Admin Portal");
+  }
+
+  const isOtpValid = await bcrypt.compare(otp, user.otp);
+
+  if (!isOtpValid) throw new ApiError(400, "Invalid or expired OTP");
 
   // Login Success
   const jwtToken = generateJWTToken_username(user);

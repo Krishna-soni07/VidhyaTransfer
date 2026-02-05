@@ -26,7 +26,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const { data } = await axios.post('/auth/login', { email, password });
+            const { data } = await axios.post('/auth/admin/login', { email, password });
 
             if (data.success) {
                 if (data.data.user.role === 'admin') {

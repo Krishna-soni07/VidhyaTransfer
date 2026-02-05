@@ -1,16 +1,14 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import { User } from "../models/user.model.js";
 import { DB_NAME } from "../constants.js";
 
 dotenv.config();
 
 // Helper to hash password (matching auth.controller.js)
-function hashPassword(password) {
-    const salt = crypto.randomBytes(16).toString("hex");
-    const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, "sha512").toString("hex");
-    return `${salt}:${hash}`;
+async function hashPassword(password) {
+    return await bcrypt.hash(password, 10);
 }
 
 const seedAdmin = async () => {
@@ -27,7 +25,7 @@ const seedAdmin = async () => {
 
         if (admin) {
             console.log("Admin user already exists. Updating credentials...");
-            admin.password = hashPassword(password);
+            admin.password = await hashPassword(password);
             admin.role = "admin";
             await admin.save();
         } else {
@@ -36,7 +34,7 @@ const seedAdmin = async () => {
                 name: "Super Admin",
                 email,
                 username,
-                password: hashPassword(password),
+                password: await hashPassword(password),
                 role: "admin",
                 picture: "https://ui-avatars.com/api/?name=Super+Admin&background=0D8ABC&color=fff",
                 skillsProficientAt: [{ name: "Administration", proficiency: "Expert" }], // Required field

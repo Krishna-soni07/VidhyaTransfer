@@ -200,12 +200,58 @@ const userSchema = new Schema(
       default: null,
     },
     otp: {
-      type: String,
+      type: String, // Stored as Hash (bcrypt)
       default: null,
     },
     otpExpires: {
       type: Date,
       default: null,
+    },
+    // Security & Logic Fields
+    status: {
+      type: String,
+      enum: ["active", "banned", "deleted"],
+      default: "active",
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    loginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockUntil: {
+      type: Date,
+      default: null,
+    },
+    lastLogin: {
+      type: Date,
+      default: null,
+    },
+    refreshToken: {
+      type: String,
+      default: null,
+    },
+    passwordChangedAt: {
+      type: Date,
+      default: null,
+    },
+    termsAccepted: {
+      type: Boolean,
+      default: false,
+    },
+    marketingConsent: {
+      type: Boolean,
+      default: false,
+    },
+    timezone: {
+      type: String,
+      default: "UTC",
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

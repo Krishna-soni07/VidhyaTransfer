@@ -1,10 +1,12 @@
 import React, { useEffect } from "react";
+import { FaGraduationCap } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useUserStore } from "../../store/useUserStore";
-import { useUser } from "../../util/UserContext"; // Keep legacy context for auth sync if needed
+import { useUser } from "../../util/UserContext";
+import { countries } from "../../util/countries";
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
@@ -65,6 +67,16 @@ const PersonalInfo = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Logo Header */}
+        <div className="flex justify-center mb-6">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-[10px] bg-blue-50 flex items-center justify-center">
+              <FaGraduationCap className="text-[28px] text-blue-500" />
+            </div>
+            <span className="text-2xl font-bold text-gray-800 font-sans">SkillSwap</span>
+          </div>
+        </div>
+
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Tell us about yourself
         </h2>
@@ -132,13 +144,18 @@ const PersonalInfo = () => {
                   Country
                 </label>
                 <div className="mt-1">
-                  <input
+                  <select
                     id="country"
-                    type="text"
                     {...register("country", { required: "Country is required" })}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    placeholder="USA"
-                  />
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white"
+                  >
+                    <option value="">Select a country</option>
+                    {countries.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
                   {errors.country && <p className="mt-1 text-xs text-red-500">{errors.country.message}</p>}
                 </div>
               </div>

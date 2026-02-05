@@ -621,7 +621,12 @@ export const discoverUsers = asyncHandler(async (req, res) => {
   const search = req.query.search || "";
   const skip = (page - 1) * limit;
 
-  const query = { username: { $ne: req.user.username } };
+  const query = {
+    username: { $ne: req.user.username },
+    role: { $ne: "admin" },
+    status: { $nin: ["banned", "deleted"] }, // Allow active or missing
+    isDeleted: { $ne: true } // Allow false or missing
+  };
 
   if (search) {
     const searchRegex = new RegExp(search, "i");

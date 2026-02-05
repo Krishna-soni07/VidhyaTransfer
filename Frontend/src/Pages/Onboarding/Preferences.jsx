@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaGraduationCap } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -120,6 +121,16 @@ const Preferences = () => {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-xl mx-auto space-y-8">
         <div className="text-center">
+          {/* Logo Header */}
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-[10px] bg-blue-50 flex items-center justify-center">
+                <FaGraduationCap className="text-[28px] text-blue-500" />
+              </div>
+              <span className="text-2xl font-bold text-gray-800 font-sans">SkillSwap</span>
+            </div>
+          </div>
+
           <h2 className="text-3xl font-extrabold text-gray-900">Preferences</h2>
           <p className="mt-2 text-sm text-gray-600">Customize your experience</p>
         </div>
