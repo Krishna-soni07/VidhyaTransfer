@@ -3,6 +3,74 @@ import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { Event } from "../../models/event.model.js";
 import { User } from "../../models/user.model.js";
+import { Chat } from "../../models/chat.model.js";
+import { sendMail } from "../../utils/SendMail.js";
+
+// @desc    Schedule a private meeting and send email notifications
+// @route   POST /api/v1/events/schedule
+// @access  User
+export const scheduleMeeting = asyncHandler(async (req, res) => {
+    const { chatId, title, date, time, type, link } = req.body;
+
+    if (!chatId || !title || !date || !time) {
+        throw new ApiError(400, "All fields (chatId, title, date, time) are required");
+    }
+
+    const chat = await Chat.findById(chatId).populate("users", "email name");
+    if (!chat) {
+        throw new ApiError(404, "Chat not found");
+    }
+
+    const meetingLink = type === 'internal' ? 'Internal Video Call' : link;
+    const sender = chat.users.find(u => u._id.toString() === req.user._id.toString());
+    const recipient = chat.users.find(u => u._id.toString() !== req.user._id.toString());
+
+    if (!sender || !recipient) {
+        throw new ApiError(400, "Participants not found in this chat context");
+    }
+
+    const formattedDate = new Date(date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    const emailTemplate = (userName) => `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; padding: 40px; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <div style="background-color: #1a73e8; padding: 30px; text-align: center;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Meeting Invitation</h1>
+                </div>
+                <div style="padding: 40px;">
+                    <p style="font-size: 16px; line-height: 1.6;">Hello <strong>${userName}</strong>,</p>
+                    <p style="font-size: 16px; line-height: 1.6;">A new meeting has been scheduled on <strong>Peer Swap</strong>.</p>
+                    
+                    <div style="background-color: #f8f9fa; border-left: 4px solid #1a73e8; padding: 20px; margin: 30px 0; border-radius: 4px;">
+                        <p style="margin: 0 0 10px 0;"><strong>📌 Topic:</strong> ${title}</p>
+                        <p style="margin: 0 0 10px 0;"><strong>🗓 Date:</strong> ${formattedDate}</p>
+                        <p style="margin: 0 0 10px 0;"><strong>⏰ Time:</strong> ${time}</p>
+                        <p style="margin: 0;"><strong>🔗 Link:</strong> <a href="${type === 'internal' ? '#' : link}" style="color: #1a73e8; text-decoration: none;">${meetingLink}</a></p>
+                    </div>
+
+                    <p style="font-size: 14px; color: #666; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
+                        This is an automated notification from Peer Swap. Please coordinate in the chat for further details.
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Send to recipient
+    await sendMail(recipient.email, `Meeting Invitation: ${title}`, emailTemplate(recipient.name));
+
+    // Send confirmation to sender
+    await sendMail(sender.email, `Meeting Confirmed: ${title}`, emailTemplate(sender.name));
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, { success: true }, "Meeting scheduled and invitation emails sent"));
+});
 
 // @desc    Create a new event
 // @route   POST /api/v1/events

@@ -58,6 +58,16 @@ connectDB()
 
       socket.on("disconnect", () => {
         console.log("Disconnected from socket");
+        socket.broadcast.emit("callEnded");
+      });
+
+      // Video Call Events
+      socket.on("callUser", ({ userToCall, signalData, from, name }) => {
+        io.to(userToCall).emit("callUser", { signal: signalData, from, name });
+      });
+
+      socket.on("answerCall", (data) => {
+        io.to(data.to).emit("callAccepted", data.signal);
       });
     });
 

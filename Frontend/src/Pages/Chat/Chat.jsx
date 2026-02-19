@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useUser } from "../../util/UserContext";
+import React, { useState, useEffect, useRef } from 'react';
 import axios from "axios";
-import { FaPaperPlane, FaVideo, FaCalendarAlt, FaSearch } from "react-icons/fa";
+import { useUser } from "../../util/UserContext";
+import { FaVideo, FaSearch, FaPaperPlane, FaCalendarAlt, FaCheck, FaCheckDouble } from "react-icons/fa";
+import { io } from "socket.io-client";
+import VideoCall from "./VideoCall";
+import ScheduleMeeting from "./ScheduleMeeting";
 
 const Chat = () => {
     const { user } = useUser();
@@ -11,8 +14,44 @@ const Chat = () => {
     const [messageInput, setMessageInput] = useState("");
     const [loadingChats, setLoadingChats] = useState(true);
     const [loadingMessages, setLoadingMessages] = useState(false);
-    const [unreadChatIds, setUnreadChatIds] = useState(new Set()); // Track unread chats
+    const [unreadChatIds, setUnreadChatIds] = useState(new Set());
+
     const messagesEndRef = useRef(null);
+
+    const [socket, setSocket] = useState(null);
+    const [activeCall, setActiveCall] = useState(false);
+    const [incomingCall, setIncomingCall] = useState(null);
+    const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+
+    // Socket Initialization
+    useEffect(() => {
+        const newSocket = io("http://localhost:8000");
+        setSocket(newSocket);
+
+        newSocket.emit("setup", user);
+        newSocket.on("connected", () => console.log("Socket connected"));
+
+        newSocket.on("callUser", (data) => {
+            setIncomingCall(data);
+        });
+
+        newSocket.on("callEnded", () => {
+            setIncomingCall(null);
+            setActiveCall(false);
+        });
+
+        return () => newSocket.disconnect();
+    }, [user]);
+
+    const startCall = () => {
+        if (!selectedChatId) return;
+        setActiveCall(true);
+    };
+
+    const endCall = () => {
+        setActiveCall(false);
+        setIncomingCall(null);
+    };
 
     // Scroll to bottom
     const scrollToBottom = () => {
@@ -34,19 +73,12 @@ const Chat = () => {
                 // Initialize unread status
                 const newUnreadIds = new Set();
                 fetchedChats.forEach(chat => {
-                    // If latest message exists, is NOT from me, it's considered unread initially for this session
                     if (chat.latestMessage && chat.latestMessage.sender && chat.latestMessage.sender !== user._id) {
                         newUnreadIds.add(chat._id);
                     }
                 });
                 setUnreadChatIds(newUnreadIds);
 
-                if (fetchedChats.length > 0 && !selectedChatId) {
-                    // Do NOT auto select the first chat. Keep selectedChatId null.
-                    // Just update unread counts.
-                    // const firstChatId = fetchedChats[0]._id;
-                    // setSelectedChatId(firstChatId);
-                }
             } catch (error) {
                 console.error("Error fetching chats:", error);
             } finally {
@@ -54,7 +86,7 @@ const Chat = () => {
             }
         };
         fetchChats();
-    }, []); // Run once on mount
+    }, []);
 
     const handleChatSelect = (chatId) => {
         setSelectedChatId(chatId);
@@ -87,9 +119,10 @@ const Chat = () => {
 
     // Derive active chat partner details
     const getChatPartner = (chat) => {
-        if (!chat || !chat.users) return { name: "Unknown", avatar: "/default-avatar.png", status: "Offline" };
+        if (!chat || !chat.users) return { _id: null, name: "Unknown", avatar: "/default-avatar.png", status: "Offline" };
         const partner = chat.users.find(u => u._id !== user._id);
         return {
+            _id: partner?._id,
             name: partner?.name || partner?.username || "User",
             avatar: partner?.picture || "https://cdn-icons-png.flaticon.com/512/149/149071.png",
             status: "Online"
@@ -133,6 +166,46 @@ const Chat = () => {
         }
     };
 
+    const handleScheduleMeeting = async (details) => {
+        const { title, date, time, type, link } = details;
+        const meetingMessage = `📅 Scheduled Meeting\n\n📌 ${title}\n🗓 ${new Date(date).toLocaleDateString()} at ${time}\n🔗 ${type === 'internal' ? 'Video Call' : link}`;
+
+        const tempId = Date.now();
+        const optimisticMessage = {
+            _id: tempId,
+            content: meetingMessage,
+            sender: { _id: user._id, name: user.name, picture: user.picture },
+            createdAt: new Date().toISOString()
+        };
+
+        setMessages(prev => [...prev, optimisticMessage]);
+
+        try {
+            // Send the chat message
+            const { data } = await axios.post("http://localhost:8000/message/sendMessage", {
+                chatId: selectedChatId,
+                content: meetingMessage
+            }, { withCredentials: true });
+
+            // Trigger email notification system
+            await axios.post("http://localhost:8000/events/schedule", {
+                chatId: selectedChatId,
+                title,
+                date,
+                time,
+                type,
+                link
+            }, { withCredentials: true });
+
+            setMessages(prev => prev.map(msg => msg._id === tempId ? data.data : msg));
+            setChats(prev => prev.map(c => c._id === selectedChatId ? { ...c, latestMessage: data.data } : c));
+
+        } catch (error) {
+            console.error("Error scheduling meeting:", error);
+            setMessages(prev => prev.filter(msg => msg._id !== tempId));
+        }
+    };
+
     if (loadingChats) return (
         <div className="min-h-screen flex items-center justify-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
@@ -150,8 +223,30 @@ const Chat = () => {
         </div>
     );
 
+    const videoCallPartner = incomingCall
+        ? { id: incomingCall.from, name: incomingCall.name, avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png" }
+        : { id: getChatPartner(activeChat)._id, name: getChatPartner(activeChat).name, avatar: getChatPartner(activeChat).avatar };
+
     return (
         <div className="h-[calc(100vh-65px)] bg-gray-50 flex flex-col p-4 md:p-6 overflow-hidden">
+            {/* Schedule Meeting Modal */}
+            <ScheduleMeeting
+                isOpen={isScheduleOpen}
+                onClose={() => setIsScheduleOpen(false)}
+                onSchedule={handleScheduleMeeting}
+            />
+
+            {/* Video Call Modal */}
+            {(activeCall || incomingCall) && (
+                <VideoCall
+                    socket={socket}
+                    user={user}
+                    partner={videoCallPartner}
+                    activeCall={activeCall}
+                    incomingCall={incomingCall}
+                    onEndCall={endCall}
+                />
+            )}
             <div className="flex-1 max-w-[1400px] w-full mx-auto flex h-full gap-6">
 
                 {/* Left Sidebar - Chat List */}
@@ -234,10 +329,16 @@ const Chat = () => {
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button className="px-3 py-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-2 text-xs font-semibold">
+                                    <button
+                                        onClick={() => setIsScheduleOpen(true)}
+                                        className="px-3 py-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-2 text-xs font-semibold"
+                                    >
                                         <FaCalendarAlt /> Schedule
                                     </button>
-                                    <button className="px-3 py-1.5 text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors flex items-center gap-2 text-xs font-semibold shadow-md shadow-green-200">
+                                    <button
+                                        onClick={startCall}
+                                        className="px-3 py-1.5 text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors flex items-center gap-2 text-xs font-semibold shadow-md shadow-green-200"
+                                    >
                                         <FaVideo /> Video Call
                                     </button>
                                 </div>
